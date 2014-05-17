@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Pragma" content="no-cache">
+<title>Australis tracker</title>
+<link rel="icon" href="https://mozorg.cdn.mozilla.net/media/img/firefox/favicon.ico?2013-08"/>
+<link rel="stylesheet" href="https://bugzilla.mozilla.org/skins/contrib/Mozilla/global.css?1386657099" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700|Droid+Sans+Mono"/>
+
+<!--<link rel="stylesheet" href="global.css"/>-->
+
+<style>
+html {
+  font-size: 0.9em;
+  min-height: 100%;
+}
+input:focus {
+  border-color: inherit;
+  box-shadow: inherit;
+}
+h1 {
+  font-size: 1.5em;
+}
+#treelink {
+  font-size: 0.6em;
+}
+#tools {
+  background: inherit;
+  float: right;
+  position: sticky;
+  top: 0;
+}
+#whiteboardFilter {
+  font-size: 0.9em;
+}
+#status {
+  position: fixed;
+  background-color: rgb(204, 204, 204);
+  border: 1px solid #999;
+  top: 3.3em;
+  width: 30%;
+  left: 50%;
+  margin-left: -15%;
+  border-radius: 3px;
+  padding: 3px;
+  text-align: center;
+  transition-property: top, visibility;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+#status.hidden {
+  top: -2em;
+  visibility: hidden;
+}
+#list:not([data-product=""]) .product {
+  display: none;
+}
+#metabugs {
+  margin: 5px 0;
+  padding: 0.3em;
+  background-color: #DDD;
+}
+#list {
+  border-collapse: collapse;
+  counter-reset: bugs P1 P2 P3 P4 P5 PMinus POther;
+  visibility: hidden;
+}
+table.sortable thead {
+  cursor: default;
+}
+#list td,
+#list th {
+  padding: 2px 4px;
+}
+tr:nth-child(even) {
+  background: #CCC;
+}
+tr:hover {
+  background: #AAA;
+}
+#list > tbody > tr {
+  counter-increment: bugs POther;
+}
+#list > tbody > tr[data-priority="P1"] { counter-increment: bugs P1; }
+#list > tbody > tr[data-priority="P2"] { counter-increment: bugs P2; }
+#list > tbody > tr[data-priority="P3"] { counter-increment: bugs P3; }
+#list > tbody > tr[data-priority="P4"] { counter-increment: bugs P4; }
+#list > tbody > tr[data-priority="P5"] { counter-increment: bugs P5; }
+#list > tbody > tr[data-priority="P-"] { counter-increment: bugs PMinus; }
+
+#list > tbody > tr[data-priority="P1"] > td.priority,
+#list > tbody > tr[data-priority="P2"] > td.priority {
+  color: #A00;
+}
+
+#list > tbody > tr[data-priority="P1"] > td.priority {
+  font-weight: bold;
+}
+
+#list > tbody > tr[data-priority="P5"] > td.priority {
+  color: #808080;
+}
+
+
+
+#summary {
+  background: inherit;
+  bottom: 0;
+  padding: 1.3em 0.3em;
+  position: sticky;
+}
+#summary::after {
+  content: counter(bugs) " bugs   (P1: " counter(P1) ",  P2: " counter(P2) ",  P3: " counter(P3) ",  P4: " counter(P4) ",  P5: " counter(P5) ",  P-: " counter(PMinus) ",  Others: " counter(POther) ")";
+  white-space: pre;
+}
+.RESOLVED {
+  text-decoration: line-through;
+}
+.assigned_to[data-assigned_to="nobody"] {
+  color: #a00;
+}
+
+.popupmenu {
+  display: inline-block;
+  padding: 0 4px;
+}
+
+.popupmenu:hover > ul,
+.popupmenu:active > ul,
+.popupmenu:hover > ol,
+.popupmenu:active > ol {
+  visibility: visible;
+}
+
+.popupmenu > ul,
+.popupmenu > ol {
+  background-color: #ddd;
+  border: 1px solid rgb(51, 51, 51);
+  list-style-position: inside;
+  margin-right: 100px;
+  padding: 4px;
+  position: absolute;
+  top: 0.7em;
+  visibility: hidden;
+  z-index: 1;
+}
+
+.popupmenu > ul {
+  list-style-type: none;
+  padding-left: inherit;
+}
+
+</style>
+<script src="tracker.js"></script>
+<script src="sorttable.js"></script>
+</head>
+
+<body>
+<div id="tools">
+  <div id="file" class="popupmenu">
+    <label>File ▾</label>
+    <ul>
+      <li><a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox&blocked=australis&status_whiteboard=%5BAustralis%3AP%3F%5D" target="_blank">Australis</a><ul>
+        <li><a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox&component=Theme&blocked=australis-tabs&status_whiteboard=%5BAustralis%3AP%3F%5D" target="_blank">Tabs</a></li>
+        <li><a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox&component=Toolbars%20and%20Customization&blocked=australis-cust&status_whiteboard=%5BAustralis%3AP%3F%5D" target="_blank">Customization</a></li>
+      </ul></li>
+    </ul>
+  </div>
+  <div id="milestones" class="popupmenu">
+    <label>Milestones ▾</label>
+    <ul>
+      <li>May 23 - June 5: M6</li>
+      <li>June 6 - June 19: M7</li>
+      <li>June 20 - Aug. 22 (ts_paint/tpaint): M8</li>
+      <li>Aug. 5: M-C becomes v.26</li>
+      <li>Aug. 23 - m-c landing: M9</li>
+      <li>Sept 16: M-C becomes v.27</li>
+      <li>Oct. 28: M-C becomes v.28</li>
+      <li>Nov. 18 - Dec. 9: M10</li>
+    </ul>
+  </div>
+  <div class="popupmenu">
+    <label>Priorities ▾</label>
+    <ol>
+      <li>- Blocker, must-fix before shipping. If this was the last bug left,
+would we hold up for it?
+      <li>- Major impact,  considering severity × probability. Not a blocker by
+itself, but barely  so. It's a bad bug and we should feel bad for
+shipping it.
+      <li>- The Average Bug.  definitely a problem, but doesn't really stop
+someone from using the browser. But still noticeable enough that an
+average user would complain about it.
+      <li>- Minor or polish bugs that are real issues (especially in aggregate),
+and even annoying,
+      <li>- Low-impact. something we'd fix, but mostly only bothers the
+discerning user. Little impact on usability.
+    </ol>
+  </div>
+  <label>Filter: <input type="search" id="whiteboardFilter" placeholder="whiteboard &amp; keywords" size="20"/></label>
+  <label><input type="checkbox" id="showMeta" value="1" checked="checked" />Meta</label>
+  <label><input type="checkbox" id="showMMinus" value="1" />M-/P-</label>
+  <select id="showResolved">
+    <option value="">Resolved and unresolved</option>
+    <option value="0">Only unresolved</option>
+    <option value="1">Only resolved</option>
+  </select>
+  <select id="productChooser">
+    <option value="">All products</option>
+    <!-- TODO: populate from bug list -->
+    <option>Add-on SDK</option>
+    <option>Core</option>
+    <option>Firefox</option>
+    <option>mozilla.org</option>
+    <option>Release Engineering</option>
+    <option>Testing</option>
+    <option>Toolkit</option>
+    <option>Tech Evangelism</option>
+    <option>www.mozilla.org</option>
+  </select>
+</div>
+<div id="status" class="hidden"></div>
+<h1><a id="title" target="_blank">Australis tracker</a> 
+  <span id="treelink" style="display: none">(<a target="_blank">tree</a>)</span>
+</h1>
+<div id="metabugs"></div>
+
+<table id="list" class="sortable">
+  <thead>
+  </thead>
+  <tbody>
+  <tbody>
+  <tfoot>
+    <tr>
+      <td></td>
+    </tr>
+  </tfoot>
+</table>
+
+<div id="summary">
+  <span style="float:right">
+    <label><input type="checkbox" id="showFlags" value="1" checked="checked" />Show bug and attachment flags (slower)</label>
+    <a href="https://bugzilla.mozilla.org/buglist.cgi?o5=substring&v6=australis&o3=notequals&list_id=8419553&v3=Thunderbird&resolution=---&o6=substring&o2=isempty&f4=OP&v5=australis&query_format=advanced&f3=product&f2=blocked&j4=OR&f5=status_whiteboard&f6=short_desc" target="_blank">Bugs mentioning "Australis" but not blocking any bugs</a>
+    <!--  <a id="search-not-level1">Australis bugs not at level 1</a> -->
+  </span>
+</div>
+
+</body>
+</html>
