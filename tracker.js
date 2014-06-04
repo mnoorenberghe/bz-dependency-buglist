@@ -193,18 +193,15 @@ function getList(blocks, depth) {
   } else if (Array.isArray(blocks)) {
     blocksParams += "&id=" + blocks.join(",");
   } else if (!(blocks in gMetabugs)) {
-    Object.keys(gMetabugs).forEach(function(list) {
-      if (list.contains(blocks))
-        blocksParams += "&blocks=" + gMetabugs[list];
-    });
+    blocksParams += "&blocks=" + parseInt(blocks, 10);
   } else {
     blocksParams = "blocks=" + gMetabugs[blocks];
   }
 
-  if (!Array.isArray(blocks)) { // Don't update the title for subqueries
+  if (!Array.isArray(blocks) && !depth) { // Don't update the title for subqueries
     var heading = document.getElementById("title");
-    heading.textContent = (blocks ? blocks : "Bugzilla Dependency Bug List");
-    document.title = "Bugzilla Dependency Bug List" + (blocks ? " - " + blocks : "");
+    heading.textContent = (blocks ? blocks : "Dependency Bug List");
+    document.title = "Dependency Bug List" + (blocks ? " - " + blocks : "");
 
     var treelink = document.getElementById("treelink");
     if (gMetabugs[blocks] || !blocks) {
