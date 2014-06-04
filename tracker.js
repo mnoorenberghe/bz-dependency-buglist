@@ -26,10 +26,13 @@ var gColumns = {
   "component": "Comp.",
   "summary": "Summary",
   "whiteboard": "Whiteboard",
+  "points": "Points",
   "priority": "Pri.",
   //"milestone": "M?",
   "keywords": "Keywords",
 };
+
+var virtualColumns = ["milestone", "points"];
 
 // Max dependency depth
 var MAX_DEPTH = 4;
@@ -224,7 +227,7 @@ function getList(blocks, depth) {
       delete gColumns["attachments"];
   }
 
-  var bzColumns = Object.keys(gColumns).filter(function(val){ return val != "milestone"; }); // milestone is a virtual column.
+  var bzColumns = Object.keys(gColumns).filter(function(val){ return virtualColumns.indexOf(val) === -1; }); // milestone is a virtual column.
   //console.log(bzColumns);
   var apiURL = "https://api-dev.bugzilla.mozilla.org/latest/bug" +
       "?" + blocksParams.replace(/^&/, "") +
@@ -435,6 +438,10 @@ function printList(unthrottled) {
             bug["milestone"] = match.slice(1, -1);
             return "";
           });
+          wb = wb.replace(/(\W|^)p=(\d*)/, function(match, p1, p2) {
+            bug["points"] = p2;
+            return p1;
+          });
           col.textContent = wb;
         }
       } else if (column == "milestone") {
@@ -501,8 +508,6 @@ function start() {
   var listbox = document.getElementById("metabugs");
   listbox.textContent = 'Metabugs: ';
   listbox.innerHTML += '<a href="./">ALL</a> ';
-  listbox.innerHTML += '<a href="?list=tabs">ALL TABS</a> ';
-  listbox.innerHTML += '<a href="?list=customization">ALL CUSTOMIZATION</a> | ';
   Object.keys(gMetabugs).forEach(function(list){
     listbox.innerHTML += '<a href="?list=' + list + '">' + list + '</a> ';
   });
