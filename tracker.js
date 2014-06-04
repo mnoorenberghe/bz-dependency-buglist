@@ -1,49 +1,43 @@
-"use strict";
- 
-var metabugs = {
-  "australis-meta": 870032,
-  "australis-tabs": 732583,
-  "australis-tabs-win": 738491,
-  "australis-tabs-osx": 823180,
-  "australis-tabs-linux": 823176,
-  "australis-tabs-menubar": 813802,
-  "australis-tabs-titlebar-osx": 625989,
-  "tab-perf": 837885,
-  "australis-addons": 942157,
-  "australis-addonfixes": 976420,
-  "australis-buttons": 767319,
-  "australis-cust": 872617,
-  "australis-measuring": 935093,
-  "australis-merge": 939862,
-  "australis-navbar": 727650,
-  "australis-tart": 902024,
-  "australis-tpaint": 889758,
-  "australis-ts": 880611,
-  "customization-M1": 770135,
-  "customization-M2": 855287,
-  "customization-M3": 860814,
-  "customization-M5": 869104,
-  "UITour": 862998,
-};
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var columns = {
+"use strict";
+
+/**
+ * Configuration
+ */
+
+var gMetabugs = {
+  // "alias": bug number,
+  // TODO: update this object for your needs
+  "australis-meta": 870032,
+  //"australis-tabs": 732583,
+};
+var gDefaultMetabug = gMetabugs["australis-meta"]; // TODO: update this for your needs
+
+var gColumns = {
   "id": "ID",
   "status": "Status",
   "resolution": "",
-  //  "creator": "Reporter",
+  //"creator": "Reporter",
   "assigned_to": "Assignee",
   "product": "Prod.",
   "component": "Comp.",
   "summary": "Summary",
   "whiteboard": "Whiteboard",
   "priority": "Pri.",
-  "milestone": "M?",
+  //"milestone": "M?",
   "keywords": "Keywords",
 };
 
 // Max dependency depth
 var MAX_DEPTH = 4;
 var BUG_CHUNK_SIZE = 100;
+
+/**
+ * State variables
+ */
 
 var gBugs = {};
 var gBugsAtMaxDepth = {};
@@ -56,16 +50,16 @@ var gSortDirection = null;
 var gHasFlags = false;
 var gLastPrintTime = 0;
 var gVisibleReporters = {};
-var dependenciesToFetch = []; // TODO: g prefix
+var gDependenciesToFetch = []; // TODO: g prefix
 for (var d = 0; d < MAX_DEPTH; d++) {
-    dependenciesToFetch[d] = [];
+    gDependenciesToFetch[d] = [];
 }
 
 function getDependencySubset(depth) {
-  var totalDepsToFetch = dependenciesToFetch.reduce(function(a, b) {
+  var totalDepsToFetch = gDependenciesToFetch.reduce(function(a, b) {
     return a + b.length;
   }, 0);
-  var subset = dependenciesToFetch[depth].splice(0, BUG_CHUNK_SIZE);
+  var subset = gDependenciesToFetch[depth].splice(0, BUG_CHUNK_SIZE);
   setStatus("Fetching " + subset.length + "/" + totalDepsToFetch + " remaining dependencies… <progress />");
   getList(subset, depth + 1);
 }
@@ -81,12 +75,12 @@ function handleMetabugs(depth, response) {
     }
     gBugs[bugs[i].id] = bugs[i];
     if ("depends_on" in bugs[i] && Array.isArray(bugs[i].depends_on)) {
-        dependenciesToFetch[depth] = dependenciesToFetch[depth].concat(bugs[i].depends_on.filter(function removeExisting(bugId) {
+        gDependenciesToFetch[depth] = gDependenciesToFetch[depth].concat(bugs[i].depends_on.filter(function removeExisting(bugId) {
                     return !(bugId in gBugs);
                 }));
-        while (dependenciesToFetch[depth].length >= BUG_CHUNK_SIZE) {
+        while (gDependenciesToFetch[depth].length >= BUG_CHUNK_SIZE) {
           getDependencySubset(depth);
-        }        
+        }
     }
   }
 
@@ -157,11 +151,11 @@ function filterChanged() {
   document.getElementById("list").dataset.product = window.localStorage.product;
 
   if (gFilterEls.flags.checked) {
-      columns["flags"] = "Flags";
-      columns["attachments"] = "Attachment Flags";
+      gColumns["flags"] = "Flags";
+      gColumns["attachments"] = "Attachment Flags";
   } else {
-      delete columns["flags"];
-      delete columns["attachments"];
+      delete gColumns["flags"];
+      delete gColumns["attachments"];
   }
 
   history.pushState(gUrlParams, "", buildURL());
@@ -190,31 +184,31 @@ function getList(blocks, depth) {
 
   var blocksParams = "";
   if (!blocks) {
-      /* 
+      /*
       // used to use the list of meta bugs but now we just do a true tree from the top so the dep. tree numbers match BZ
-    Object.keys(metabugs).forEach(function(list) {
-      blocksParams += "&blocks=" + metabugs[list];
-      });*/  
-    blocksParams += "&blocks=" + metabugs["australis-meta"];
+    Object.keys(gMetabugs).forEach(function(list) {
+      blocksParams += "&blocks=" + gMetabugs[list];
+      });*/
+    blocksParams += "&blocks=" + gDefaultMetabug;
   } else if (Array.isArray(blocks)) {
     blocksParams += "&id=" + blocks.join(",");
-  } else if (!(blocks in metabugs)) {
-    Object.keys(metabugs).forEach(function(list) {
+  } else if (!(blocks in gMetabugs)) {
+    Object.keys(gMetabugs).forEach(function(list) {
       if (list.contains(blocks))
-        blocksParams += "&blocks=" + metabugs[list];
+        blocksParams += "&blocks=" + gMetabugs[list];
     });
   } else {
-    blocksParams = "blocks=" + metabugs[blocks];
+    blocksParams = "blocks=" + gMetabugs[blocks];
   }
 
   if (!Array.isArray(blocks)) { // Don't update the title for subqueries
     var heading = document.getElementById("title");
-    heading.textContent = (blocks ? blocks : "Australis tracker");
-    document.title = "Australis tracker" + (blocks ? " - " + blocks : "");
+    heading.textContent = (blocks ? blocks : "Bugzilla Dependency Bug List");
+    document.title = "Bugzilla Dependency Bug List" + (blocks ? " - " + blocks : "");
 
     var treelink = document.getElementById("treelink");
-    if (metabugs[blocks] || !blocks) {
-        var bugNum = (blocks ? metabugs[blocks] : metabugs["australis-meta"]);
+    if (gMetabugs[blocks] || !blocks) {
+        var bugNum = (blocks ? gMetabugs[blocks] : gDefaultMetabug);
       heading.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + bugNum;
       treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + bugNum + "&maxdepth=" + MAX_DEPTH + "&hide_resolved=1";
       treelink.style.display = "inline";
@@ -223,22 +217,21 @@ function getList(blocks, depth) {
       treelink.firstElementChild.removeAttribute("href");
       treelink.style.display = "none";
     }
-  }  
-
-  if (gFilterEls.flags.checked) {
-      columns["flags"] = "Flags";
-      columns["attachments"] = "Attachment Flags";
-  } else {
-      delete columns["flags"];
-      delete columns["attachments"];
   }
 
-  var bzColumns = Object.keys(columns).filter(function(val){ return val != "milestone"; }); // milestone is a virtual column.
+  if (gFilterEls.flags.checked) {
+      gColumns["flags"] = "Flags";
+      gColumns["attachments"] = "Attachment Flags";
+  } else {
+      delete gColumns["flags"];
+      delete gColumns["attachments"];
+  }
+
+  var bzColumns = Object.keys(gColumns).filter(function(val){ return val != "milestone"; }); // milestone is a virtual column.
   //console.log(bzColumns);
   var apiURL = "https://api-dev.bugzilla.mozilla.org/latest/bug" +
-  //var apiURL = "https://localhost/~matthew/australis/bug.json" +
       "?" + blocksParams.replace(/^&/, "") +
-    "&include_fields=creator,depends_on," + bzColumns.join(",");
+    "&include_fields=depends_on," + bzColumns.join(",");
 
   var hasFlags = gFilterEls.flags.checked;
   var gHTTPRequest = null;  // TODO
@@ -262,8 +255,8 @@ function getList(blocks, depth) {
     gHTTPRequestsInProgress--;
     if (!gHTTPRequestsInProgress) {
         // clear out all deps. to fetch at all depths
-      for (var d = 0; d < dependenciesToFetch.length; d++) {
-        while (dependenciesToFetch[d].length) {
+      for (var d = 0; d < gDependenciesToFetch.length; d++) {
+        while (gDependenciesToFetch[d].length) {
           getDependencySubset(d);
         }
       }
@@ -323,9 +316,9 @@ function printList(unthrottled) {
   table.insertBefore(thead, table.tBodies[0]);
   var headerRow = document.createElement("tr");
   thead.appendChild(headerRow);
-  Object.keys(columns).forEach(function(columnId) {
+  Object.keys(gColumns).forEach(function(columnId) {
     var th = document.createElement("th");
-    th.textContent = columns[columnId];
+    th.textContent = gColumns[columnId];
     th.className = columnId;
     th.dataset.column = columnId;
     headerRow.appendChild(th);
@@ -367,20 +360,22 @@ function printList(unthrottled) {
       return;
     }
     var whiteboardFilterLower = whiteboardFilter.toLowerCase();
-    if (whiteboardFilter && (!(bug.whiteboard && bug.whiteboard.toLowerCase().contains(whiteboardFilterLower)) && 
+    if (whiteboardFilter && (!(bug.whiteboard && bug.whiteboard.toLowerCase().contains(whiteboardFilterLower)) &&
                              !(bug.keywords && bug.keywords.join(" ").toLowerCase().contains(whiteboardFilterLower)))
         ) {
       return;
     }
-    if (!gVisibleReporters[bug["creator"].name]) {
-        gVisibleReporters[bug["creator"].name] = {};
+    if (bug["creator"]) {
+      if (!gVisibleReporters[bug["creator"].name]) {
+          gVisibleReporters[bug["creator"].name] = {};
+      }
+      gVisibleReporters[bug["creator"].name][bugId] = 1;
     }
-    gVisibleReporters[bug["creator"].name][bugId] = 1;
 
     // Note that this doesn't get cleared so really means bugs visible based on initial filters. It's only used for gathering data in the console.
     gVisibleBugs[bugId] = bug;
 
-    Object.keys(columns).forEach(function(column) {
+    Object.keys(gColumns).forEach(function(column) {
       var col = document.createElement("td");
       if (column)
         col.classList.add(column);
@@ -511,7 +506,7 @@ function start() {
   listbox.innerHTML += '<a href="./">ALL</a> ';
   listbox.innerHTML += '<a href="?list=tabs">ALL TABS</a> ';
   listbox.innerHTML += '<a href="?list=customization">ALL CUSTOMIZATION</a> | ';
-  Object.keys(metabugs).forEach(function(list){
+  Object.keys(gMetabugs).forEach(function(list){
     listbox.innerHTML += '<a href="?list=' + list + '">' + list + '</a> ';
   });
 
@@ -525,8 +520,8 @@ function start() {
   parseQueryParams();
 
   if (window.localStorage.showFlags === "1") {
-      columns["flags"] = "Flags";
-      columns["attachments"] = "Attachment Flags";
+      gColumns["flags"] = "Flags";
+      gColumns["attachments"] = "Attachment Flags";
   }
 
   // Add filter listeners after loading values
