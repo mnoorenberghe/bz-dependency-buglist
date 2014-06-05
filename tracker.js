@@ -545,6 +545,9 @@ function start() {
 
 function loadBugs() {
   setStatus("Loading bugs… <progress />");
+  if (gUrlParams.maxdepth >= 0) {
+    MAX_DEPTH = gUrlParams.maxdepth;
+  }
   getList(gUrlParams.list || window.location.hash.replace("#", ""), 0);
 }
 
