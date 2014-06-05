@@ -455,11 +455,13 @@ function printList(unthrottled) {
   });
   sorttable.makeSortable(table);
   if (gSortColumn) {
-    var sortTh = thead.querySelector("th[data-column='" + gSortColumn + "']")
+    var sortTh = thead.querySelector("th[data-column='" + gSortColumn + "']");
+    if (sortTh) {
+      sorttable.innerSortFunction.apply(sortTh, []);
+      // sort again if we want the other direction
+      if (gSortDirection == "desc") {
         sorttable.innerSortFunction.apply(sortTh, []);
-    // sort again if we want the other direction
-    if (gSortDirection == "desc") {
-        sorttable.innerSortFunction.apply(sortTh, []);
+      }
     }
   }
   table.style.visibility = "visible";
