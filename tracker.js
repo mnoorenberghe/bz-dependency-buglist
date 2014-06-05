@@ -509,6 +509,8 @@ function start() {
   listbox.textContent = 'Metabugs: ';
   listbox.innerHTML += '<a href="./">ALL</a> ';
   Object.keys(gMetabugs).forEach(function(list){
+    if (gMetabugs[list] == gDefaultMetabug)
+      return;
     listbox.innerHTML += '<a href="?list=' + list + '">' + list + '</a> ';
   });
 
