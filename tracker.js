@@ -397,7 +397,6 @@ function printList(unthrottled) {
           });
           // If there are no attachment flags, indicate if there is a non-obsolete patch.
           if (!currentAttachmentsWithFlags.length) {
-              console.log(bug[column]);
             var currentPatches = bug[column].filter(function filterAttachments (att) {
               return (!att.is_obsolete && att.is_patch);
             });
@@ -505,10 +504,13 @@ function loadFilterValues(state) {
 }
 
 function start() {
+  var fileBugList = document.querySelector("#file > ul");
   var listbox = document.getElementById("metabugs");
   listbox.textContent = 'Metabugs: ';
   listbox.innerHTML += '<a href="./">ALL</a> ';
   Object.keys(gMetabugs).forEach(function(list){
+    // TODO: don't hard-code the product. Unfortunately the blocked parameter gets lost without a product though :(
+    fileBugList.innerHTML += '<li><a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox&blocked=' + gMetabugs[list] + '">' + list + '</a></li>';
     if (gMetabugs[list] == gDefaultMetabug)
       return;
     listbox.innerHTML += '<a href="?list=' + list + '">' + list + '</a> ';
