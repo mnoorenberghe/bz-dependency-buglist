@@ -26,13 +26,14 @@ var gColumns = {
   "component": "Comp.",
   "summary": "Summary",
   "whiteboard": "Whiteboard",
-  "points": "Points",
+  "cf_fx_points": "Points",
+  "cf_fx_iteration": "Iter.",
   "priority": "Pri.",
   //"milestone": "M?",
   "keywords": "Keywords",
 };
 
-var virtualColumns = ["milestone", "points"];
+var virtualColumns = ["milestone"];
 
 // Max dependency depth
 var MAX_DEPTH = 4;
@@ -438,7 +439,17 @@ function printList(unthrottled) {
             return "";
           });
           wb = wb.replace(/(\W|^)p=(\d*)/, function(match, p1, p2) {
-            bug["points"] = p2;
+            // Don't overwrite the real field with the whiteboard
+            if (!bug["cf_fx_points"] || bug["cf_fx_points"] == "---") {
+              bug["cf_fx_points"] = p2;
+            }
+            return p1;
+          });
+          wb = wb.replace(/(\W|^)s=([^\[ ]*)/, function(match, p1, p2) {
+            // Don't overwrite the real field with the whiteboard
+            if (!bug["cf_fx_iteration"] || bug["cf_fx_iteration"] == "---") {
+              bug["cf_fx_iteration"] = p2;
+            }
             return p1;
           });
           col.textContent = wb;
