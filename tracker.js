@@ -186,6 +186,7 @@ function getList(blocks, depth) {
     return;
   }
 
+  var metaBug = null;
   var blocksParams = "";
   if (!blocks) {
       /*
@@ -194,12 +195,16 @@ function getList(blocks, depth) {
       blocksParams += "&blocks=" + gMetabugs[list];
       });*/
     blocksParams += "&blocks=" + gDefaultMetabug;
+    metaBug = gDefaultMetabug;
   } else if (Array.isArray(blocks)) {
     blocksParams += "&id=" + blocks.join(",");
   } else if (!(blocks in gMetabugs)) {
-    blocksParams += "&blocks=" + parseInt(blocks, 10);
+    var bugNum = parseInt(blocks, 10);
+    blocksParams += "&blocks=" + bugNum;
+    metaBug = bugNum;
   } else {
     blocksParams = "blocks=" + gMetabugs[blocks];
+    metaBug = gMetabugs[blocks];
   }
 
   if (!Array.isArray(blocks) && !depth) { // Don't update the title for subqueries
@@ -208,10 +213,9 @@ function getList(blocks, depth) {
     document.title = "Dependency Bug List" + (blocks ? " - " + blocks : "");
 
     var treelink = document.getElementById("treelink");
-    if (gMetabugs[blocks] || !blocks) {
-        var bugNum = (blocks ? gMetabugs[blocks] : gDefaultMetabug);
-      heading.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + bugNum;
-      treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + bugNum + "&maxdepth=" + MAX_DEPTH + "&hide_resolved=1";
+    if (metaBug) {
+      heading.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + metaBug;
+      treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + metaBug + "&maxdepth=" + MAX_DEPTH + "&hide_resolved=1";
       treelink.style.display = "inline";
     } else {
       heading.removeAttribute("href");
