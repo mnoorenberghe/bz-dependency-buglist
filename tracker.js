@@ -530,7 +530,7 @@ function loadFilterValues(state) {
   gFilterEls.product.value = ("product" in state ? state.product : window.localStorage.product);
   document.getElementById("list").dataset.product = gFilterEls.product.value;
   gFilterEls.meta.checked = ("meta" in state ? state.meta : window.localStorage.showMeta) !== "0";
-  gFilterEls.mMinus.checked = ("mMinus" in state ? state.mMinus : window.localStorage.showMMinus) !== "0";
+  gFilterEls.mMinus.checked = ("mMinus" in state ? state.mMinus : window.localStorage.showMMinus) === "1";
   gFilterEls.flags.checked = ("flags" in state ? state.flags : window.localStorage.showFlags) === "1";
   gFilterEls.whiteboard.value = ("whiteboard" in state ? state.whiteboard : "");
   gFilterEls.maxdepth.value = ("maxdepth" in state ? state.maxdepth : MAX_DEPTH);
