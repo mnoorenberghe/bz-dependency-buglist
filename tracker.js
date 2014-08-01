@@ -54,10 +54,7 @@ var gSortDirection = null;
 var gHasFlags = false;
 var gLastPrintTime = 0;
 var gVisibleReporters = {};
-var gDependenciesToFetch = []; // TODO: g prefix
-for (var d = 0; d < MAX_DEPTH; d++) {
-    gDependenciesToFetch[d] = [];
-}
+var gDependenciesToFetch = [];
 
 function getDependencySubset(depth) {
   var totalDepsToFetch = gDependenciesToFetch.reduce(function(a, b) {
@@ -73,8 +70,8 @@ function handleMetabugs(depth, response) {
   var bugs = json.bugs;
 
   for (var i = 0; i < bugs.length; i++) {
-      // First occurrence at MAX_DEPTH
-    if (depth == MAX_DEPTH - 1 && !(bugs[i].id in gBugs)) {
+    // First occurrence at MAX_DEPTH
+    if (depth == gFilterEls.maxdepth.value - 1 && !(bugs[i].id in gBugs)) {
         gBugsAtMaxDepth[bugs[i].id] = bugs[i];
     }
     gBugs[bugs[i].id] = bugs[i];
@@ -111,7 +108,7 @@ function hasDefaultValue(el) {
       break;
     default:
       if (el.localName == "select") {
-        return el.selectedIndex == 0;
+        return el.selectedOptions[0].defaultSelected;
       } else {
         return el.value === el.defaultValue;
       }
@@ -126,19 +123,36 @@ function buildURL() {
   Object.keys(gFilterEls).forEach(function(paramName) {
     var filterVal = getFilterValue(gFilterEls[paramName]);
     // Don't include defaults but allow 0.
-    if (filterVal === "" || filterVal === null || filterVal === NaN)
+    if (filterVal === null || filterVal === NaN)
       return;
+
+    if (hasDefaultValue(gFilterEls[paramName]))
+      return;
+
     // meta defaults to 1.
     if (paramName == "meta" && filterVal == "1")
       return;
+
+    if (paramName == "maxdepth" && filterVal == MAX_DEPTH)
+      return;
+
+    if (paramName == "resolved" && filterVal === "0")
+      return;
+
     url += (url ? "&" : "?") + paramName + "=" + encodeURIComponent(filterVal);
   });
   // if we only return an empty string, then pushState doesn't work
   return url || "?";
 }
 
-function filterChanged() {
-  console.log("filterChanged");
+function filterChanged(evt) {
+  console.log("filterChanged", evt);
+  var requireNewLoad = false;
+
+  if (evt.target == gFilterEls.maxdepth) {
+    requireNewLoad = true;
+  }
+
   var showResolved = parseInt(getFilterValue(gFilterEls.resolved), 2);
   window.localStorage.showResolved = showResolved;
 
@@ -150,6 +164,9 @@ function filterChanged() {
 
   var flagFilter = document.getElementById("showFlags");
   window.localStorage.showFlags = getFilterValue(flagFilter);
+  if (!gHasFlags && gFilterEls.flags.checked) {
+    requireNewLoad = true;
+  }
 
   window.localStorage.product = getFilterValue(gFilterEls.product);
   document.getElementById("list").dataset.product = window.localStorage.product;
@@ -162,15 +179,15 @@ function filterChanged() {
       delete gColumns["attachments"];
   }
 
-  history.pushState(gUrlParams, "", buildURL());
+  window.history.pushState(gUrlParams, "", buildURL());
 
-  if (!gHasFlags && gFilterEls.flags.checked) {
+  if (requireNewLoad) {
       // Can't start new unrelated requests there are others pending
-    if (gHTTPRequestsInProgress) {
-        window.location = buildURL();
-    } else {
-      loadBugs();
-    }
+      if (gHTTPRequestsInProgress) {
+          window.location = buildURL();
+      } else {
+          loadBugs();
+      }
   }
 
   printList(true);
@@ -178,7 +195,7 @@ function filterChanged() {
 
 function getList(blocks, depth) {
   //  console.log("getList:", depth, blocks);
-  if (depth >= MAX_DEPTH) {
+  if (depth >= gFilterEls.maxdepth.value) {
     console.log("MAX_DEPTH reached: ", depth);
     if (!gHTTPRequestsInProgress) {
       setStatus("");
@@ -215,7 +232,7 @@ function getList(blocks, depth) {
     var treelink = document.getElementById("treelink");
     if (metaBug) {
       heading.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + metaBug;
-      treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + metaBug + "&maxdepth=" + MAX_DEPTH + "&hide_resolved=1";
+      treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + metaBug + "&maxdepth=" + gFilterEls.maxdepth.value + "&hide_resolved=1";
       treelink.style.display = "inline";
     } else {
       heading.removeAttribute("href");
@@ -516,6 +533,7 @@ function loadFilterValues(state) {
   gFilterEls.mMinus.checked = ("mMinus" in state ? state.mMinus : window.localStorage.showMMinus) !== "0";
   gFilterEls.flags.checked = ("flags" in state ? state.flags : window.localStorage.showFlags) === "1";
   gFilterEls.whiteboard.value = ("whiteboard" in state ? state.whiteboard : "");
+  gFilterEls.maxdepth.value = ("maxdepth" in state ? state.maxdepth : MAX_DEPTH);
   gSortColumn = ("sort" in state ? state.sort : window.localStorage.sortColumn);
   gSortDirection = ("sortDir" in state ? state.sortDir : window.localStorage.sortDirection);
 }
@@ -538,6 +556,7 @@ function start() {
   gFilterEls.meta = document.getElementById("showMeta");
   gFilterEls.mMinus = document.getElementById("showMMinus");
   gFilterEls.flags = document.getElementById("showFlags");
+  gFilterEls.maxdepth = document.getElementById("maxDepth");
   gFilterEls.whiteboard = document.getElementById("whiteboardFilter");
 
   parseQueryParams();
@@ -553,6 +572,7 @@ function start() {
   gFilterEls.meta.addEventListener("change", filterChanged);
   gFilterEls.mMinus.addEventListener("change", filterChanged);
   gFilterEls.flags.addEventListener("change", filterChanged);
+  gFilterEls.maxdepth.addEventListener("input", filterChanged);
   gFilterEls.whiteboard.addEventListener("input", filterChanged);
 
   loadBugs();
@@ -560,8 +580,9 @@ function start() {
 
 function loadBugs() {
   setStatus("Loading bugs… <progress />");
-  if (gUrlParams.maxdepth >= 0) {
-    MAX_DEPTH = gUrlParams.maxdepth;
+  gDependenciesToFetch = new Array(gFilterEls.maxdepth.value);
+  for (var d = 0; d < gDependenciesToFetch.length; d++) {
+    gDependenciesToFetch[d] = [];
   }
   getList(gUrlParams.list || window.location.hash.replace("#", ""), 0);
 }
