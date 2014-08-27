@@ -71,7 +71,7 @@ function handleMetabugs(depth, response) {
 
   for (var i = 0; i < bugs.length; i++) {
     // First occurrence at MAX_DEPTH
-    if (depth == gFilterEls.maxdepth.value - 1 && !(bugs[i].id in gBugs)) {
+    if (depth == parseInt(gFilterEls.maxdepth.value) - 1 && !(bugs[i].id in gBugs)) {
         gBugsAtMaxDepth[bugs[i].id] = bugs[i];
     }
     gBugs[bugs[i].id] = bugs[i];
@@ -195,7 +195,7 @@ function filterChanged(evt) {
 
 function getList(blocks, depth) {
   //  console.log("getList:", depth, blocks);
-  if (depth >= gFilterEls.maxdepth.value) {
+  if (depth >= parseInt(gFilterEls.maxdepth.value)) {
     console.log("MAX_DEPTH reached: ", depth);
     if (!gHTTPRequestsInProgress) {
       setStatus("");
@@ -580,7 +580,7 @@ function start() {
 
 function loadBugs() {
   setStatus("Loading bugs… <progress />");
-  gDependenciesToFetch = new Array(gFilterEls.maxdepth.value);
+  gDependenciesToFetch = new Array(parseInt(gFilterEls.maxdepth.value));
   for (var d = 0; d < gDependenciesToFetch.length; d++) {
     gDependenciesToFetch[d] = [];
   }
