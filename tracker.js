@@ -298,8 +298,17 @@ function getList(blocks, depth) {
   gHTTPRequestsInProgress++;
 }
 
-function flagText(flag) {
-  return flag.name + flag.status + (flag.requestee ? "(" + shortenUsername(flag.requestee.name) + ")" : "");
+function flagText(flag, html = false) {
+  var text = flag.name + flag.status + (flag.requestee ? "(" + shortenUsername(flag.requestee.name) + ")" : "");
+  if (html && flag.status == "?") {
+    var span = document.createElement("span");
+    span.className = "flag";
+    span.dataset.flagName = flag.name;
+    span.dataset.flagStatus = flag.status;
+    span.textContent = text;
+    text = span.outerHTML;
+  }
+  return text;
 }
 
 function shortenUsername(username) {
@@ -404,7 +413,7 @@ function printList(unthrottled) {
       if (Array.isArray(bug[column])) { // Arrays
         if (column == "flags") {
           bug[column].forEach(function(flag) {
-            col.textContent += flagText(flag) + " ";
+            col.innerHTML += flagText(flag, true) + " ";
           });
         } else if (column == "keywords") {
           col.textContent = bug[column].join(", ");
@@ -414,7 +423,7 @@ function printList(unthrottled) {
           });
           currentAttachmentsWithFlags.forEach(function(attachment) {
             attachment.flags.forEach(function(flag) {
-              col.textContent += flagText(flag) + " ";
+              col.innerHTML += flagText(flag, true) + " ";
             });
           });
           // If there are no attachment flags, indicate if there is a non-obsolete patch.
