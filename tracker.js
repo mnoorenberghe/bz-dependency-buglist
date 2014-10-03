@@ -215,7 +215,9 @@ function getList(blocks, depth) {
       blocksParams += "&blocks=" + gDefaultMetabug;
       metaBug = gDefaultMetabug;
     } else {
-      setStatus("No list or default meta bug specified");
+      setStatus("No list or default meta bug specified.<br/>" +
+                "<form onsubmit='javascript:'><input type=number size=8 placeholder=Bug style='-moz-appearance:textfield' /> " +
+                "<button onclick='gUrlParams.list=this.previousElementSibling.value;filterChanged(event);'>Go</button></form>");
       return;
     }
   } else if (Array.isArray(blocks)) {
