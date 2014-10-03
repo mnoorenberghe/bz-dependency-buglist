@@ -498,6 +498,9 @@ function printList(unthrottled) {
             return p1;
           });
           col.textContent = wb;
+
+          // Do this transform on the HTML so HTML can be added and so HTML is already escaped.
+          col.innerHTML = col.innerHTML.replace(/\[blocked[^\]]*\]/i, "<span class=blocked>$&</span>");
         }
       } else if (column == "milestone") {
         col.textContent =  bug[column] || "--";
