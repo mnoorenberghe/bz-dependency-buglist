@@ -11,10 +11,10 @@
 var gMetabugs = {
   // "alias": bug number,
   // TODO: update this object for your needs
-  "australis-meta": 870032,
+  //"australis-meta": 870032,
   //"australis-tabs": 732583,
 };
-var gDefaultMetabug = gMetabugs["australis-meta"]; // TODO: update this for your needs
+var gDefaultMetabug = null; // Example: gMetabugs["australis-meta"];
 
 var gColumns = {
   "id": "ID",
@@ -211,8 +211,13 @@ function getList(blocks, depth) {
     Object.keys(gMetabugs).forEach(function(list) {
       blocksParams += "&blocks=" + gMetabugs[list];
       });*/
-    blocksParams += "&blocks=" + gDefaultMetabug;
-    metaBug = gDefaultMetabug;
+    if (gDefaultMetabug) {
+      blocksParams += "&blocks=" + gDefaultMetabug;
+      metaBug = gDefaultMetabug;
+    } else {
+      setStatus("No list or default meta bug specified");
+      return;
+    }
   } else if (Array.isArray(blocks)) {
     blocksParams += "&id=" + blocks.join(",");
   } else if (!(blocks in gMetabugs)) {
@@ -226,7 +231,15 @@ function getList(blocks, depth) {
 
   if (!Array.isArray(blocks) && !depth) { // Don't update the title for subqueries
     var heading = document.getElementById("title");
-    heading.textContent = (blocks ? blocks : "Dependency Bug List");
+    if (blocks) {
+      if (blocks in gMetabugs) {
+        heading.textContent = blocks;
+      } else {
+        heading.textContent = "Bug " + blocks;
+      }
+    } else {
+      heading.textContent = "Dependency Bug List";
+    }
     document.title = "Dependency Bug List" + (blocks ? " - " + blocks : "");
 
     var treelink = document.getElementById("treelink");
