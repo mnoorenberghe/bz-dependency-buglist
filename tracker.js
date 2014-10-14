@@ -291,13 +291,13 @@ function getList(blocks, depth) {
     gHTTPRequest = null;
     gHTTPRequestsInProgress--;
     if (!gHTTPRequestsInProgress) {
+      setStatus("");
         // clear out all deps. to fetch at all depths
       for (var d = 0; d < gDependenciesToFetch.length; d++) {
         while (gDependenciesToFetch[d].length) {
           getDependencySubset(d);
         }
       }
-      setStatus("");
       printList(true);
     }
   };
