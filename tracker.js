@@ -266,7 +266,7 @@ function getList(blocks, depth) {
 
   var bzColumns = Object.keys(gColumns).filter(function(val){ return virtualColumns.indexOf(val) === -1; }); // milestone is a virtual column.
   //console.log(bzColumns);
-  var apiURL = "https://api-dev.bugzilla.mozilla.org/latest/bug" +
+  var apiURL = "https://bugzilla.mozilla.org/bzapi/bug" +
       "?" + blocksParams.replace(/^&/, "") +
     "&include_fields=depends_on," + bzColumns.join(",");
 
