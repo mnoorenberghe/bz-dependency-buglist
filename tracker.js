@@ -147,6 +147,7 @@ function buildURL() {
 
 function filterChanged(evt) {
   console.log("filterChanged", evt);
+  var requireNewFetch = false;
   var requireNewLoad = false;
 
   if (evt.target == gFilterEls.maxdepth) {
@@ -165,7 +166,7 @@ function filterChanged(evt) {
   var flagFilter = document.getElementById("showFlags");
   window.localStorage.showFlags = getFilterValue(flagFilter);
   if (!gHasFlags && gFilterEls.flags.checked) {
-    requireNewLoad = true;
+    requireNewFetch = true;
   }
 
   window.localStorage.product = getFilterValue(gFilterEls.product);
@@ -181,10 +182,11 @@ function filterChanged(evt) {
 
   window.history.pushState(gUrlParams, "", buildURL());
 
-  if (requireNewLoad) {
-      // Can't start new unrelated requests there are others pending
-      if (gHTTPRequestsInProgress) {
+  if (requireNewFetch || requireNewLoad) {
+      // Can't start new unrelated requests when there are others pending
+      if (gHTTPRequestsInProgress || requireNewLoad) {
           window.location = buildURL();
+          return;
       } else {
           loadBugs();
       }
@@ -313,7 +315,7 @@ function getList(blocks, depth) {
   gHTTPRequestsInProgress++;
 }
 
-function flagText(flag, html = false) {
+function flagText(flag, html) {
   var text = flag.name + flag.status + (flag.requestee ? "(" + shortenUsername(flag.requestee.name) + ")" : "");
   if (html && flag.status == "?") {
     var span = document.createElement("span");
@@ -386,7 +388,7 @@ function printList(unthrottled) {
     tr.id = bug.id;
     tr.classList.add(bug.status);
     // Marked bugs in project branches as fixed e.g. [fixed-in-ux] or [fixed in jamun]
-    if (bug.whiteboard && bug.whiteboard.contains("[fixed")) {
+    if (bug.whiteboard && bug.whiteboard.indexOf("[fixed") !== false) {
       tr.classList.add("RESOLVED");
     }
 
@@ -402,12 +404,12 @@ function printList(unthrottled) {
       return;
     }
 
-    if (mMinusFilter === "0" && (bug.whiteboard && (bug.whiteboard.toLowerCase().contains(":m-]") || bug.whiteboard.toLowerCase().contains(":p-]")))) {
+    if (mMinusFilter === "0" && (bug.whiteboard && (bug.whiteboard.toLowerCase().indexOf(":m-]") !== false || bug.whiteboard.toLowerCase().indexOf(":p-]") !== false))) {
       return;
     }
     var whiteboardFilterLower = whiteboardFilter.toLowerCase();
-    if (whiteboardFilter && (!(bug.whiteboard && bug.whiteboard.toLowerCase().contains(whiteboardFilterLower)) &&
-                             !(bug.keywords && bug.keywords.join(" ").toLowerCase().contains(whiteboardFilterLower)))
+    if (whiteboardFilter && (!(bug.whiteboard && bug.whiteboard.toLowerCase().indexOf(whiteboardFilterLower) !== false) &&
+                             !(bug.keywords && bug.keywords.join(" ").toLowerCase().indexOf(whiteboardFilterLower) !== false))
         ) {
       return;
     }
