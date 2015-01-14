@@ -388,7 +388,7 @@ function printList(unthrottled) {
     tr.id = bug.id;
     tr.classList.add(bug.status);
     // Marked bugs in project branches as fixed e.g. [fixed-in-ux] or [fixed in jamun]
-    if (bug.whiteboard && bug.whiteboard.indexOf("[fixed") !== false) {
+    if (bug.whiteboard && bug.whiteboard.indexOf("[fixed") !== -1) {
       tr.classList.add("RESOLVED");
     }
 
@@ -404,12 +404,12 @@ function printList(unthrottled) {
       return;
     }
 
-    if (mMinusFilter === "0" && (bug.whiteboard && (bug.whiteboard.toLowerCase().indexOf(":m-]") !== false || bug.whiteboard.toLowerCase().indexOf(":p-]") !== false))) {
+    if (mMinusFilter === "0" && (bug.whiteboard && (bug.whiteboard.toLowerCase().indexOf(":m-]") !== -1 || bug.whiteboard.toLowerCase().indexOf(":p-]") !== -1))) {
       return;
     }
     var whiteboardFilterLower = whiteboardFilter.toLowerCase();
-    if (whiteboardFilter && (!(bug.whiteboard && bug.whiteboard.toLowerCase().indexOf(whiteboardFilterLower) !== false) &&
-                             !(bug.keywords && bug.keywords.join(" ").toLowerCase().indexOf(whiteboardFilterLower) !== false))
+    if (whiteboardFilter && (!(bug.whiteboard && bug.whiteboard.toLowerCase().indexOf(whiteboardFilterLower) !== -1) &&
+                             !(bug.keywords && bug.keywords.join(" ").toLowerCase().indexOf(whiteboardFilterLower) !== -1))
         ) {
       return;
     }
