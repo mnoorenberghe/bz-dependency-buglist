@@ -441,6 +441,10 @@ function printList(unthrottled) {
       if (Array.isArray(bug[column])) { // Arrays
         if (column == "flags") {
           bug[column].forEach(function(flag) {
+            // Ignore some old bug flags that are no longer relevant
+            if (flag.name.startsWith("blocking-aviary") || flag.name.endsWith("1.9") || flag.name.endsWith("firefox2")) {
+              return;
+            }
             col.innerHTML += flagText(flag, true) + " ";
           });
         } else if (column == "keywords") {
