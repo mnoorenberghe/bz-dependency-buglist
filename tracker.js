@@ -20,6 +20,7 @@ var gColumns = {
   "id": "ID",
   "status": "Status",
   "resolution": "",
+  "cf_last_resolved": "Last Resolved",
   //"creator": "Reporter",
   "assigned_to": "Assignee",
   "product": "Prod.",
@@ -156,6 +157,7 @@ function filterChanged(evt) {
 
   var showResolved = parseInt(getFilterValue(gFilterEls.resolved), 2);
   window.localStorage.showResolved = showResolved;
+  document.getElementById("list").dataset.showResolved = window.localStorage.showResolved;
 
   var metaFilter = document.getElementById("showMeta");
   window.localStorage.showMeta = getFilterValue(metaFilter);
