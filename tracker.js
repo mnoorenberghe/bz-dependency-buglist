@@ -56,6 +56,8 @@ var gHasFlags = false;
 var gLastPrintTime = 0;
 var gVisibleReporters = {};
 var gDependenciesToFetch = [];
+// Hack to disable localStorage saving since it confuses people especially when shared across multiple dashboards on the same domain.
+var gStorage = {};// window.localStorage
 
 function getDependencySubset(depth) {
   var totalDepsToFetch = gDependenciesToFetch.reduce(function(a, b) {
@@ -156,26 +158,26 @@ function filterChanged(evt) {
   }
 
   var showResolved = parseInt(getFilterValue(gFilterEls.resolved), 2);
-  window.localStorage.showResolved = showResolved;
-  document.getElementById("list").dataset.showResolved = window.localStorage.showResolved;
+  gStorage.showResolved = showResolved;
+  document.getElementById("list").dataset.showResolved = showResolved;
 
   var metaFilter = document.getElementById("showMeta");
-  window.localStorage.showMeta = getFilterValue(metaFilter);
+  gStorage.showMeta = getFilterValue(metaFilter);
 
   var mMinusFilter = document.getElementById("showMMinus");
-  window.localStorage.showMMinus = getFilterValue(mMinusFilter);
+  gStorage.showMMinus = getFilterValue(mMinusFilter);
 
   var assigneeFilter = document.getElementById("assigneeFilter");
-  window.localStorage.assigneeFilter = getFilterValue(assigneeFilter);
+  gStorage.assigneeFilter = getFilterValue(assigneeFilter);
 
   var flagFilter = document.getElementById("showFlags");
-  window.localStorage.showFlags = getFilterValue(flagFilter);
+  gStorage.showFlags = getFilterValue(flagFilter);
   if (!gHasFlags && gFilterEls.flags.checked) {
     requireNewFetch = true;
   }
 
-  window.localStorage.product = getFilterValue(gFilterEls.product);
-  document.getElementById("list").dataset.product = window.localStorage.product;
+  gStorage.product = getFilterValue(gFilterEls.product);
+  document.getElementById("list").dataset.product = gStorage.product;
 
   if (gFilterEls.flags.checked) {
       gColumns["flags"] = "Flags";
@@ -361,9 +363,9 @@ function printList(unthrottled) {
     setTimeout(function() {
       var sortedColumn = thead.querySelector(".sorttable_sorted, .sorttable_sorted_reverse");
       gSortColumn = sortedColumn.dataset.column;
-      window.localStorage.sortColumn = gSortColumn;
+      gStorage.sortColumn = gSortColumn;
       gSortDirection = sortedColumn.classList.contains("sorttable_sorted_reverse") ? "desc" : "asc";
-      window.localStorage.sortDirection = gSortDirection;
+      gStorage.sortDirection = gSortDirection;
     }, 1000);
   });
   table.insertBefore(thead, table.tBodies[0]);
@@ -570,17 +572,17 @@ function parseQueryParams() {
 
 function loadFilterValues(state) {
   console.log("loadFilterValues", state);
-  gFilterEls.assignee.value = ("assignee" in state ? state.assignee : window.localStorage.assigneeFilter);
-  gFilterEls.resolved.value = ("resolved" in state ? state.resolved : window.localStorage.showResolved);
-  gFilterEls.product.value = ("product" in state ? state.product : window.localStorage.product);
+  gFilterEls.assignee.value = ("assignee" in state ? state.assignee : gStorage.assigneeFilter);
+  gFilterEls.resolved.value = ("resolved" in state ? state.resolved : gStorage.showResolved);
+  gFilterEls.product.value = ("product" in state ? state.product : gStorage.product);
   document.getElementById("list").dataset.product = gFilterEls.product.value;
-  gFilterEls.meta.checked = ("meta" in state ? state.meta : window.localStorage.showMeta) !== "0";
-  gFilterEls.mMinus.checked = ("mMinus" in state ? state.mMinus : window.localStorage.showMMinus) === "1";
-  gFilterEls.flags.checked = ("flags" in state ? state.flags : window.localStorage.showFlags) === "1";
+  gFilterEls.meta.checked = ("meta" in state ? state.meta : gStorage.showMeta) !== "0";
+  gFilterEls.mMinus.checked = ("mMinus" in state ? state.mMinus : gStorage.showMMinus) === "1";
+  gFilterEls.flags.checked = ("flags" in state ? state.flags : gStorage.showFlags) === "1";
   gFilterEls.whiteboard.value = ("whiteboard" in state ? state.whiteboard : "");
   gFilterEls.maxdepth.value = ("maxdepth" in state ? state.maxdepth : MAX_DEPTH);
-  gSortColumn = ("sort" in state ? state.sort : window.localStorage.sortColumn);
-  gSortDirection = ("sortDir" in state ? state.sortDir : window.localStorage.sortDirection);
+  gSortColumn = ("sort" in state ? state.sort : gStorage.sortColumn);
+  gSortDirection = ("sortDir" in state ? state.sortDir : gStorage.sortDirection);
 }
 
 function start() {
@@ -607,7 +609,7 @@ function start() {
 
   parseQueryParams();
 
-  if (window.localStorage.showFlags === "1") {
+  if (gStorage.showFlags === "1") {
       gColumns["flags"] = "Flags";
       gColumns["attachments"] = "Attachment Flags";
   }
