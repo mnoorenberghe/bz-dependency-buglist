@@ -144,6 +144,16 @@ function buildURL() {
 
     url += (url ? "&" : "?") + paramName + "=" + encodeURIComponent(filterVal);
   });
+  ["sortColumn", "sortDirection"].forEach(function(paramName) {
+    if (!(paramName in gStorage))
+      return;
+
+    var filterVal = gStorage[paramName];
+    if (filterVal === null || filterVal === NaN)
+      return;
+
+    url += (url ? "&" : "?") + paramName + "=" + encodeURIComponent(filterVal);
+  });
   // if we only return an empty string, then pushState doesn't work
   return url || "?";
 }
@@ -366,6 +376,7 @@ function printList(unthrottled) {
       gStorage.sortColumn = gSortColumn;
       gSortDirection = sortedColumn.classList.contains("sorttable_sorted_reverse") ? "desc" : "asc";
       gStorage.sortDirection = gSortDirection;
+      filterChanged(evt);
     }, 1000);
   });
   table.insertBefore(thead, table.tBodies[0]);
@@ -581,8 +592,8 @@ function loadFilterValues(state) {
   gFilterEls.flags.checked = ("flags" in state ? state.flags : gStorage.showFlags) === "1";
   gFilterEls.whiteboard.value = ("whiteboard" in state ? state.whiteboard : "");
   gFilterEls.maxdepth.value = ("maxdepth" in state ? state.maxdepth : MAX_DEPTH);
-  gSortColumn = ("sort" in state ? state.sort : gStorage.sortColumn);
-  gSortDirection = ("sortDir" in state ? state.sortDir : gStorage.sortDirection);
+  gSortColumn = ("sortColumn" in state ? state.sortColumn : gStorage.sortColumn);
+  gSortDirection = ("sortDirection" in state ? state.sortDirection : gStorage.sortDirection);
 }
 
 function start() {
