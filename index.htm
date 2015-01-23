@@ -176,6 +176,11 @@ tr:hover {
   <label>Max. Depth: <input type="number" id="maxDepth" size="1" min="0" max="10" style="max-width: 4ch" required="required" value="4"/></label>
   <label><input type="checkbox" id="showMeta" value="1" checked="checked" />Meta</label>
   <label><input type="checkbox" id="showMMinus" value="1" />M-/P-</label>
+  <select id="assigneeFilter">
+    <option value="" selected="selected">All assignees</option>
+    <option value="unassigned">Unassigned</option>
+    <option value="assigned">Assigned</option>
+  </select>
   <select id="showResolved">
     <option value="">Resolved and unresolved</option>
     <option value="0" selected="selected">Only unresolved</option>

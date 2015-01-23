@@ -165,6 +165,9 @@ function filterChanged(evt) {
   var mMinusFilter = document.getElementById("showMMinus");
   window.localStorage.showMMinus = getFilterValue(mMinusFilter);
 
+  var assigneeFilter = document.getElementById("assigneeFilter");
+  window.localStorage.assigneeFilter = getFilterValue(assigneeFilter);
+
   var flagFilter = document.getElementById("showFlags");
   window.localStorage.showFlags = getFilterValue(flagFilter);
   if (!gHasFlags && gFilterEls.flags.checked) {
@@ -379,6 +382,7 @@ function printList(unthrottled) {
   whiteboardFilter = whiteboardFilter.replace(/^\[m/i, "[Australis:M");
   whiteboardFilter = whiteboardFilter.replace(/^\[p/i, "[Australis:P");
 
+  var assigneeFilter = getFilterValue(gFilterEls.assignee);
   var resolvedFilter = getFilterValue(gFilterEls.resolved);
   var productFilter = getFilterValue(gFilterEls.product);
   var metaFilter = getFilterValue(gFilterEls.meta);
@@ -395,6 +399,11 @@ function printList(unthrottled) {
     }
 
     if (resolvedFilter !== "" && (tr.classList.contains("RESOLVED") || tr.classList.contains("VERIFIED")) != resolvedFilter) {
+      return;
+    }
+
+    if (assigneeFilter !== "" && (assigneeFilter == "unassigned" && !bug.assigned_to.name.startsWith("nobody") ||
+                                  assigneeFilter == "assigned" && bug.assigned_to.name.startsWith("nobody"))) {
       return;
     }
 
@@ -557,6 +566,7 @@ function parseQueryParams() {
 
 function loadFilterValues(state) {
   console.log("loadFilterValues", state);
+  gFilterEls.assignee.value = ("assignee" in state ? state.assignee : window.localStorage.assigneeFilter);
   gFilterEls.resolved.value = ("resolved" in state ? state.resolved : window.localStorage.showResolved);
   gFilterEls.product.value = ("product" in state ? state.product : window.localStorage.product);
   document.getElementById("list").dataset.product = gFilterEls.product.value;
@@ -586,6 +596,7 @@ function start() {
   gFilterEls.product = document.getElementById("productChooser");
   gFilterEls.meta = document.getElementById("showMeta");
   gFilterEls.mMinus = document.getElementById("showMMinus");
+  gFilterEls.assignee = document.getElementById("assigneeFilter");
   gFilterEls.flags = document.getElementById("showFlags");
   gFilterEls.maxdepth = document.getElementById("maxDepth");
   gFilterEls.whiteboard = document.getElementById("whiteboardFilter");
@@ -598,6 +609,7 @@ function start() {
   }
 
   // Add filter listeners after loading values
+  gFilterEls.assignee.addEventListener("change", filterChanged);
   gFilterEls.resolved.addEventListener("change", filterChanged);
   gFilterEls.product.addEventListener("change", filterChanged);
   gFilterEls.meta.addEventListener("change", filterChanged);
