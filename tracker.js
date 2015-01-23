@@ -485,7 +485,14 @@ function printList(unthrottled) {
           col.textContent = "ARRAY";
         }
       } else if (typeof(bug[column]) == "object") { // Objects
-        col.textContent =  (bug[column].name ? shortenUsername(bug[column].name) : '');
+        if (bug[column].name) { // e.g. User object
+          var shortName = shortenUsername(bug[column].name);
+          col.setAttribute("sorttable_customkey", shortName.toLowerCase());
+          col.textContent = shortName;
+        } else {
+          col.textContent = '';
+        }
+
         col.dataset[column] = col.textContent;
       } else if (column == "id" || column == "summary") {
         var a = document.createElement("a");
