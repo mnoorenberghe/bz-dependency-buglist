@@ -261,7 +261,7 @@ function getList(blocks, depth) {
     } else {
       heading.textContent = "Dependency Bug List";
     }
-    document.title = "Dependency Bug List" + (blocks ? " - " + blocks : "");
+    document.title = (blocks ? blocks + " - " : "") + "Dependency Bug List";
 
     var treelink = document.getElementById("treelink");
     if (metaBug) {
