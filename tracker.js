@@ -600,7 +600,7 @@ function loadFilterValues(state) {
   console.log("loadFilterValues", state);
   var assignee = ("assignee" in state ? state.assignee : gStorage.assigneeFilter);
   gFilterEls.assignee.value = assignee;
-  if (gFilterEls.assignee.value != assignee) {
+  if (assignee && gFilterEls.assignee.value != assignee) {
     // We set the value but it doesn't match. This means we need to add an option.
     var option = document.createElement("option");
     option.value = option.textContent = assignee;
