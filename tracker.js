@@ -495,7 +495,8 @@ function printList(unthrottled) {
       } else if (typeof(bug[column]) == "object") { // Objects
         if (bug[column].name) { // e.g. User object
           var shortName = shortenUsername(bug[column].name);
-          col.setAttribute("sorttable_customkey", shortName.toLowerCase());
+          // Ignore the case of usernames and sort "nobody" last.
+          col.setAttribute("sorttable_customkey", shortName.toLowerCase().replace(/^nobody/, "zzzzznobody"));
           col.textContent = shortName;
         } else {
           col.textContent = '';
