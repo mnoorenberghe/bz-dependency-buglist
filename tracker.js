@@ -167,6 +167,11 @@ function filterChanged(evt) {
     requireNewLoad = true;
   }
 
+  // Handle the click on the Go button to change lists
+  if (evt.type == "submit") {
+    requireNewLoad = true;
+  }
+
   var showResolved = parseInt(getFilterValue(gFilterEls.resolved), 2);
   gStorage.showResolved = showResolved;
   document.getElementById("list").dataset.showResolved = showResolved;
@@ -203,6 +208,7 @@ function filterChanged(evt) {
       // Can't start new unrelated requests when there are others pending
       if (gHTTPRequestsInProgress || requireNewLoad) {
           window.location = buildURL();
+          evt.preventDefault();
           return;
       } else {
           loadBugs();
@@ -235,8 +241,9 @@ function getList(blocks, depth) {
       metaBug = gDefaultMetabug;
     } else {
       setStatus("No list or default meta bug specified.<br/>" +
-                "<form onsubmit='javascript:'><input type=number size=8 placeholder=Bug style='-moz-appearance:textfield' /> " +
-                "<button onclick='gUrlParams.list=this.previousElementSibling.value;filterChanged(event);'>Go</button></form>");
+                "<form onsubmit='gUrlParams.list=this.firstElementChild.value;filterChanged(event);'>" +
+                "<input type=number size=8 placeholder=Bug style='-moz-appearance:textfield' /> " +
+                "<button>Go</button></form>");
       return;
     }
   } else if (Array.isArray(blocks)) {
