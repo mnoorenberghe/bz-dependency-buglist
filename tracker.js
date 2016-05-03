@@ -63,7 +63,7 @@ function getDependencySubset(depth) {
   }, 0);
   var subset = gDependenciesToFetch[depth].splice(0, BUG_CHUNK_SIZE);
   setStatus("Fetching " + subset.length + "/" + totalDepsToFetch + " remaining dependencies… <progress />");
-  getList(subset, depth + 1);
+  fetchBugs(subset, depth + 1);
 }
 
 function handleMetabugs(depth, response) {
@@ -207,14 +207,16 @@ function filterChanged(evt) {
 
 /**
  * Fetch bugs that are descendants of the root bug at the specified depth.
- *
  * If `depth` is greater than the max depth, no bugs will be fetched.
+ *
+ * If `blocks` is an array, fetch the specified bugs.
+ * Otherwise, fetch bugs that block the bug identified by number or alias in gMetaBugs.
  *
  * @param {String|Number|Number[]} blocks - gMetaBugs alias, bug number of array of bug numbers
  * @param {Number} depth - number of levels below the root bug that we are fetching
  */
-function getList(blocks, depth) {
-  console.log("getList:", depth, blocks);
+function fetchBugs(blocks, depth) {
+  console.log("fetchBugs:", depth, blocks);
   if (depth >= parseInt(gFilterEls.maxdepth.value)) {
     console.log("max. depth reached: ", depth);
     if (!gHTTPRequestsInProgress) {
@@ -661,7 +663,7 @@ function getBugsUnderRoot() {
 
   let rootBugOrAlias = gUrlParams.list || window.location.hash.replace("#", "") || gDefaultMetabug;
   if (rootBugOrAlias) {
-    getList(rootBugOrAlias, 0);
+    fetchBugs(rootBugOrAlias, 0);
   } else {
     setStatus("No list or default meta bug specified.<br/>" +
               "<form onsubmit='gUrlParams.list=this.firstElementChild.value;filterChanged(event);'>" +
