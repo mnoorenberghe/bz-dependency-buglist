@@ -34,11 +34,13 @@ var gColumns = {
   "keywords": "Keywords",
 };
 
-var virtualColumns = ["milestone"];
 
-// Max dependency depth
-var MAX_DEPTH = 4;
-var BUG_CHUNK_SIZE = 100;
+const BUG_CHUNK_SIZE = 100;
+/**
+ * Max dependency depth
+ */
+const DEFAULT_MAX_DEPTH = 4;
+const VIRTUAL_COLUMNS = ["milestone"];
 
 /**
  * State variables
@@ -71,7 +73,7 @@ function handleMetabugs(depth, response) {
   var bugs = json.bugs;
 
   for (var i = 0; i < bugs.length; i++) {
-    // First occurrence at MAX_DEPTH
+    // First occurrence at the max depth
     if (depth == parseInt(gFilterEls.maxdepth.value) - 1 && !(bugs[i].id in gBugs)) {
         gBugsAtMaxDepth[bugs[i].id] = bugs[i];
     }
@@ -134,7 +136,7 @@ function buildURL() {
     if (paramName == "meta" && filterVal == "1")
       return;
 
-    if (paramName == "maxdepth" && filterVal == MAX_DEPTH)
+    if (paramName == "maxdepth" && filterVal == DEFAULT_MAX_DEPTH)
       return;
 
     if (paramName == "resolved" && filterVal === "0")
@@ -208,7 +210,7 @@ function filterChanged(evt) {
 function getList(blocks, depth) {
   //  console.log("getList:", depth, blocks);
   if (depth >= parseInt(gFilterEls.maxdepth.value)) {
-    console.log("MAX_DEPTH reached: ", depth);
+    console.log("max. depth reached: ", depth);
     if (!gHTTPRequestsInProgress) {
       setStatus("");
     }
@@ -277,7 +279,7 @@ function getList(blocks, depth) {
       delete gColumns["attachments"];
   }
 
-  var bzColumns = Object.keys(gColumns).filter(function(val){ return virtualColumns.indexOf(val) === -1; }); // milestone is a virtual column.
+  var bzColumns = Object.keys(gColumns).filter(function(val){ return VIRTUAL_COLUMNS.indexOf(val) === -1; }); // milestone is a virtual column.
   //console.log(bzColumns);
   var apiURL = "https://bugzilla.mozilla.org/bzapi/bug" +
       "?" + blocksParams.replace(/^&/, "") +
@@ -608,7 +610,7 @@ function loadFilterValues(state) {
   gFilterEls.mMinus.checked = ("mMinus" in state ? state.mMinus : "") === "1";
   gFilterEls.flags.checked = ("flags" in state ? state.flags : "") === "1";
   gFilterEls.whiteboard.value = ("whiteboard" in state ? state.whiteboard : "");
-  gFilterEls.maxdepth.value = ("maxdepth" in state ? state.maxdepth : MAX_DEPTH);
+  gFilterEls.maxdepth.value = ("maxdepth" in state ? state.maxdepth : DEFAULT_MAX_DEPTH);
   gSortColumn = ("sortColumn" in state ? state.sortColumn : gSortColumn);
   gSortDirection = ("sortDirection" in state ? state.sortDirection : gSortDirection);
 }
