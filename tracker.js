@@ -56,7 +56,6 @@ var gHasFlags = false;
 var gLastPrintTime = 0;
 var gVisibleReporters = {};
 var gDependenciesToFetch = [];
-// Hack to disable localStorage saving since it confuses people especially when shared across multiple dashboards on the same domain.
 
 function getDependencySubset(depth) {
   var totalDepsToFetch = gDependenciesToFetch.reduce(function(a, b) {
