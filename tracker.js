@@ -206,7 +206,7 @@ function filterChanged(evt) {
 }
 
 function getList(blocks, depth) {
-  //  console.log("getList:", depth, blocks);
+  console.log("getList:", depth, blocks);
   if (depth >= parseInt(gFilterEls.maxdepth.value)) {
     console.log("max. depth reached: ", depth);
     if (!gHTTPRequestsInProgress) {
@@ -218,11 +218,6 @@ function getList(blocks, depth) {
   var metaBug = null;
   var blocksParams = "";
   if (!blocks) {
-    /*
-     // used to use the list of meta bugs but now we just do a true tree from the top so the dep. tree numbers match BZ
-     Object.keys(gMetabugs).forEach(function(list) {
-     blocksParams += "&blocks=" + gMetabugs[list];
-     });*/
     if (gDefaultMetabug) {
       blocksParams += "&blocks=" + gDefaultMetabug;
       metaBug = gDefaultMetabug;
