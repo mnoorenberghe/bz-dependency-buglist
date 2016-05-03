@@ -73,16 +73,16 @@ function handleMetabugs(depth, response) {
   for (var i = 0; i < bugs.length; i++) {
     // First occurrence at the max depth
     if (depth == parseInt(gFilterEls.maxdepth.value) - 1 && !(bugs[i].id in gBugs)) {
-        gBugsAtMaxDepth[bugs[i].id] = bugs[i];
+      gBugsAtMaxDepth[bugs[i].id] = bugs[i];
     }
     gBugs[bugs[i].id] = bugs[i];
     if ("depends_on" in bugs[i] && Array.isArray(bugs[i].depends_on)) {
-        gDependenciesToFetch[depth] = gDependenciesToFetch[depth].concat(bugs[i].depends_on.filter(function removeExisting(bugId) {
-                    return !(bugId in gBugs);
-                }));
-        while (gDependenciesToFetch[depth].length >= BUG_CHUNK_SIZE) {
-          getDependencySubset(depth);
-        }
+      gDependenciesToFetch[depth] = gDependenciesToFetch[depth].concat(bugs[i].depends_on.filter(function removeExisting(bugId) {
+        return !(bugId in gBugs);
+      }));
+      while (gDependenciesToFetch[depth].length >= BUG_CHUNK_SIZE) {
+        getDependencySubset(depth);
+      }
     }
   }
 
@@ -182,24 +182,24 @@ function filterChanged(evt) {
   document.getElementById("list").dataset.product = getFilterValue(gFilterEls.product);
 
   if (gFilterEls.flags.checked) {
-      gColumns["flags"] = "Flags";
-      gColumns["attachments"] = "Attachment Flags";
+    gColumns["flags"] = "Flags";
+    gColumns["attachments"] = "Attachment Flags";
   } else {
-      delete gColumns["flags"];
-      delete gColumns["attachments"];
+    delete gColumns["flags"];
+    delete gColumns["attachments"];
   }
 
   window.history.pushState(gUrlParams, "", buildURL());
 
   if (requireNewFetch || requireNewLoad) {
-      // Can't start new unrelated requests when there are others pending
-      if (gHTTPRequestsInProgress || requireNewLoad) {
-          window.location = buildURL();
-          evt.preventDefault();
-          return;
-      } else {
-          loadBugs();
-      }
+    // Can't start new unrelated requests when there are others pending
+    if (gHTTPRequestsInProgress || requireNewLoad) {
+      window.location = buildURL();
+      evt.preventDefault();
+      return;
+    } else {
+      loadBugs();
+    }
   }
 
   printList(true);
@@ -218,11 +218,11 @@ function getList(blocks, depth) {
   var metaBug = null;
   var blocksParams = "";
   if (!blocks) {
-      /*
-      // used to use the list of meta bugs but now we just do a true tree from the top so the dep. tree numbers match BZ
-    Object.keys(gMetabugs).forEach(function(list) {
-      blocksParams += "&blocks=" + gMetabugs[list];
-      });*/
+    /*
+     // used to use the list of meta bugs but now we just do a true tree from the top so the dep. tree numbers match BZ
+     Object.keys(gMetabugs).forEach(function(list) {
+     blocksParams += "&blocks=" + gMetabugs[list];
+     });*/
     if (gDefaultMetabug) {
       blocksParams += "&blocks=" + gDefaultMetabug;
       metaBug = gDefaultMetabug;
@@ -270,18 +270,18 @@ function getList(blocks, depth) {
   }
 
   if (gFilterEls.flags.checked) {
-      gColumns["flags"] = "Flags";
-      gColumns["attachments"] = "Attachment Flags";
+    gColumns["flags"] = "Flags";
+    gColumns["attachments"] = "Attachment Flags";
   } else {
-      delete gColumns["flags"];
-      delete gColumns["attachments"];
+    delete gColumns["flags"];
+    delete gColumns["attachments"];
   }
 
   var bzColumns = Object.keys(gColumns).filter(function(val){ return VIRTUAL_COLUMNS.indexOf(val) === -1; }); // milestone is a virtual column.
   //console.log(bzColumns);
   var apiURL = "https://bugzilla.mozilla.org/bzapi/bug" +
-      "?" + blocksParams.replace(/^&/, "") +
-    "&include_fields=depends_on," + bzColumns.join(",");
+        "?" + blocksParams.replace(/^&/, "") +
+        "&include_fields=depends_on," + bzColumns.join(",");
 
   var hasFlags = gFilterEls.flags.checked;
   var gHTTPRequest = null;  // TODO
@@ -305,7 +305,7 @@ function getList(blocks, depth) {
     gHTTPRequestsInProgress--;
     if (!gHTTPRequestsInProgress) {
       setStatus("");
-        // clear out all deps. to fetch at all depths
+      // clear out all deps. to fetch at all depths
       for (var d = 0; d < gDependenciesToFetch.length; d++) {
         while (gDependenciesToFetch[d].length) {
           getDependencySubset(d);
@@ -434,9 +434,9 @@ function printList(unthrottled) {
     var whiteboardFilterLower = whiteboardFilter.toLowerCase();
     if (whiteboardFilter && (!(bug.whiteboard && bug.whiteboard.toLowerCase().indexOf(whiteboardFilterLower) !== -1) &&
                              !(bug.keywords && bug.keywords.join(" ").toLowerCase().indexOf(whiteboardFilterLower) !== -1))
-        ) {
-      return;
-    }
+       ) {
+         return;
+       }
 
     Object.keys(gColumns).forEach(function(column) {
       var col = document.createElement("td");
@@ -468,7 +468,7 @@ function printList(unthrottled) {
               return (!att.is_obsolete && att.is_patch);
             });
             if (currentPatches.length) {
-                col.textContent = "(none)";
+              col.textContent = "(none)";
             }
           }
         } else {
@@ -495,11 +495,11 @@ function printList(unthrottled) {
         if (typeof(bug[column]) !== "undefined")
           col.textContent = bug[column].substr(0, 4);
       } else if (column == "component") {
-          col.textContent =  bug[column].replace(/and Customization/, "& Cust.");
+        col.textContent =  bug[column].replace(/and Customization/, "& Cust.");
       } else if (column == "priority") { // Custom sort order for +/-
-          col.textContent =  bug[column];
-          // Comma character is between + and - in ASCII
-          col.setAttribute("sorttable_customkey", bug[column].replace(/^(P\d)$/, "$1,"));
+        col.textContent =  bug[column];
+        // Comma character is between + and - in ASCII
+        col.setAttribute("sorttable_customkey", bug[column].replace(/^(P\d)$/, "$1,"));
       } else if (column == "whiteboard") {
         if (bug[column]) {
           var wb = bug[column].replace("[Australis:M", "[M");
@@ -629,8 +629,8 @@ function start() {
   parseQueryParams();
 
   if (gFilterEls.flags.checked) {
-      gColumns["flags"] = "Flags";
-      gColumns["attachments"] = "Attachment Flags";
+    gColumns["flags"] = "Flags";
+    gColumns["attachments"] = "Attachment Flags";
   }
 
   // Add filter listeners after loading values
