@@ -707,8 +707,6 @@ function init() {
  * e.g. if flag columns are requested after the page was fully loaded without flags.
  */
 function getBugsUnderRoot() {
-  setStatus("Loading bugs… <progress />");
-
   // Populate/clear gDependenciesToFetch for the appropriate number of levels.
   gDependenciesToFetch = new Array(parseInt(gFilterEls.maxdepth.value) + 1);
   for (var d = 0; d < gDependenciesToFetch.length; d++) {
@@ -718,6 +716,8 @@ function getBugsUnderRoot() {
   // This can be an alias known only to the dashboard in gMetabugs, not only a Bugzilla alias.
   var rootBugOrAlias = gUrlParams.list || window.location.hash.replace("#", "") || gDefaultMetabug;
 
+  var heading = document.getElementById("title");
+  var treelink = document.getElementById("treelink");
   if (!rootBugOrAlias) {
     heading.removeAttribute("href");
     treelink.firstElementChild.removeAttribute("href");
@@ -731,7 +731,6 @@ function getBugsUnderRoot() {
   }
 
   // Update the heading and title for the specified root bug.
-  var heading = document.getElementById("title");
   if (Number(rootBugOrAlias)) {
     heading.textContent = "Bug " + rootBugOrAlias;
   } else {
@@ -742,12 +741,12 @@ function getBugsUnderRoot() {
 
   // Lookup in gMetabugs in case we have an alias known only to the dashboard, not to bugzilla.
   var bugzillaBugOrAlias = rootBugOrAlias in gMetabugs ? gMetabugs[rootBugOrAlias] : rootBugOrAlias;
-  var treelink = document.getElementById("treelink");
   heading.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + bugzillaBugOrAlias;
   treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + bugzillaBugOrAlias +
     "&maxdepth=" + gFilterEls.maxdepth.value + "&hide_resolved=1";
   treelink.style.display = "inline";
 
+  setStatus("Loading bugs… <progress />");
   fetchBugs(bugzillaBugOrAlias, 0);
 }
 
