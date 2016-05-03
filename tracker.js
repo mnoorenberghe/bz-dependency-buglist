@@ -198,7 +198,7 @@ function filterChanged(evt) {
       evt.preventDefault();
       return;
     } else {
-      loadBugs();
+      loadInitialBugs();
     }
   }
 
@@ -643,10 +643,10 @@ function start() {
   gFilterEls.maxdepth.addEventListener("input", filterChanged);
   gFilterEls.whiteboard.addEventListener("input", filterChanged);
 
-  loadBugs();
+  loadInitialBugs();
 }
 
-function loadBugs() {
+function loadInitialBugs() {
   setStatus("Loading bugs… <progress />");
   gDependenciesToFetch = new Array(parseInt(gFilterEls.maxdepth.value));
   for (var d = 0; d < gDependenciesToFetch.length; d++) {
