@@ -324,18 +324,15 @@ function fetchBugs(blocks, depth) {
   var bzColumns = Object.keys(gColumns).filter(function(val) { // gColumns without virtual columns (e.g. milestone)
     return VIRTUAL_COLUMNS.indexOf(val) === -1;
   });
-  //console.log(bzColumns);
+
   var apiURL = BUGZILLA_ORIGIN + "/bzapi/bug" +
         "?" + blocksParams.replace(/^&/, "") +
         "&include_fields=depends_on,blocks," + bzColumns.join(",");
 
   var hasFlags = gFilterEls.flags.checked;
-  var gHTTPRequest = null;  // TODO
-  if (gHTTPRequest)
-    gHTTPRequest.abort();
-  gHTTPRequest = new XMLHttpRequest();
+  var xhr = new XMLHttpRequest();
   var callback = handleBugsResponse.bind(this, depth);
-  gHTTPRequest.onreadystatechange = function progressListener() {
+  xhr.onreadystatechange = function progressListener() {
     if (this.readyState == 4) {
       if (this.status == 200) {
         gHasFlags = hasFlags;
@@ -345,8 +342,8 @@ function fetchBugs(blocks, depth) {
       }
     }
   };
-  gHTTPRequest.onloadend = function loadend() {
-    gHTTPRequest = null;
+  xhr.onloadend = function loadend() {
+    xhr = null;
     gHTTPRequestsInProgress--;
     if (!gHTTPRequestsInProgress) {
       setStatus("");
@@ -359,15 +356,14 @@ function fetchBugs(blocks, depth) {
       printList(true);
     }
   };
-  gHTTPRequest.onerror = function xhr_error(evt) {
+  xhr.onerror = function xhr_error(evt) {
     setStatus("There was an error with a request: " + evt.target.statusText);
-    gHTTPRequest = null;
   };
 
-  gHTTPRequest.open("GET", apiURL, true);
-  gHTTPRequest.setRequestHeader('Accept',       'application/json');
-  gHTTPRequest.setRequestHeader('Content-Type', 'application/json');
-  gHTTPRequest.send();
+  xhr.open("GET", apiURL, true);
+  xhr.setRequestHeader('Accept',       'application/json');
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send();
   gHTTPRequestsInProgress++;
 }
 
