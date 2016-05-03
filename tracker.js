@@ -48,7 +48,7 @@ const VIRTUAL_COLUMNS = ["milestone"];
  */
 
 var gBugs = {};
-var gBugsAtMaxDepth = {};
+var gBugsAtMaxDepth = {}; // For debugging only
 var gHTTPRequestsInProgress = 0;
 var gUrlParams = {};
 var gFilterEls = {};
@@ -67,7 +67,7 @@ function getDependencySubset(depth) {
   fetchBugs(subset, depth + 1);
 }
 
-function handleMetabugs(depth, response) {
+function handleBugsResponse(depth, response) {
   var json = JSON.parse(response);
   var bugs = json.bugs;
   //console.info("response:", depth, bugs);
@@ -76,10 +76,15 @@ function handleMetabugs(depth, response) {
     if (depth == parseInt(gFilterEls.maxdepth.value) && !(bugs[i].id in gBugs)) {
       gBugsAtMaxDepth[bugs[i].id] = bugs[i];
     }
-    // Don't include the root bug in the list
+
+    // Add the found bug to the gBugs array.
+    // Don't include the root bug in the list.
     if (depth > 0) {
       gBugs[bugs[i].id] = bugs[i];
     }
+
+    // Add any depedencies to the array of dependencies to fetch for the specified
+    // depth unless we've already fetched that bug through a different path.
     if ("depends_on" in bugs[i] && Array.isArray(bugs[i].depends_on)) {
       gDependenciesToFetch[depth] = gDependenciesToFetch[depth].concat(bugs[i].depends_on.filter(function removeExisting(bugId) {
         return !(bugId in gBugs);
@@ -262,7 +267,7 @@ function fetchBugs(blocks, depth) {
   if (gHTTPRequest)
     gHTTPRequest.abort();
   gHTTPRequest = new XMLHttpRequest();
-  var callback = handleMetabugs.bind(this, depth);
+  var callback = handleBugsResponse.bind(this, depth);
   gHTTPRequest.onreadystatechange = function progressListener() {
     if (this.readyState == 4) {
       if (this.status == 200) {
