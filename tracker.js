@@ -67,6 +67,10 @@ function getDependencySubset(depth) {
   fetchBugs(subset, depth + 1);
 }
 
+/**
+ * @param {Number} depth - Depth of the returned bugs. 0 = root bug only, 1 = dependencies of the root, etc.
+ * @param {String} response - HTTP response string from the XHR.
+ */
 function handleBugsResponse(depth, response) {
   var json = JSON.parse(response);
   var bugs = json.bugs;
@@ -78,7 +82,7 @@ function handleBugsResponse(depth, response) {
     }
 
     // Add the found bug to the gBugs array.
-    // Don't include the root bug in the list.
+    // Don't include the root bug in the array.
     if (depth > 0) {
       gBugs[bugs[i].id] = bugs[i];
     }
