@@ -622,7 +622,6 @@ function parseQueryParams() {
   while ( (match = search.exec(query)) )
     gUrlParams[decode(match[1])] = decode(match[2]);
   loadFilterValues(gUrlParams);
-  printList(true);
 };
 
 function loadFilterValues(state) {
@@ -721,10 +720,9 @@ function getBugsUnderRoot() {
     treelink.firstElementChild.removeAttribute("href");
     treelink.style.display = "none";
 
-    setStatus("No list or default meta bug specified.<br/>" +
-              "<form onsubmit='gUrlParams.list=this.firstElementChild.value;filterChanged(event);'>" +
-              "<input size=18 placeholder='bug number or alias'/> " +
-              "<button>Fetch dependencies</button></form>");
+    document.getElementById("form").hidden = false;
+    document.getElementById("tools").hidden = true;
+    document.getElementById("showFlagsLabel").hidden = true;
     return;
   }
 

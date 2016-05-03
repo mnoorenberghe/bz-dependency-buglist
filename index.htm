@@ -49,11 +49,18 @@ h1 {
   transition-property: top, visibility;
   transition-duration: 0.3s;
   transition-timing-function: ease;
+  /* Stay above #summary */
+  z-index: 1;
 }
 #status.hidden {
   top: -2em;
   visibility: hidden;
 }
+
+#form {
+  text-align: center;
+}
+
 #list:not([data-product=""]) .product {
   display: none;
 }
@@ -80,7 +87,7 @@ table.sortable thead {
 tr:nth-child(even) {
   background: #CCC;
 }
-tr:hover {
+tbody > tr:hover {
   background: #AAA;
 }
 #list > tbody > tr {
@@ -207,6 +214,14 @@ tr:hover {
 </h1>
 <div id="metabugs" hidden></div>
 
+<form id="form" hidden="true" onsubmit="gUrlParams.list=this.list.value;filterChanged(event);this.hidden=true;">
+  <p>Specify a meta bug to list the dependencies:</p>
+  <p>
+    <input name="list" size="18" placeholder="bug number or alias" autofocus />
+    <button>Fetch dependencies</button>
+  </p>
+</form>
+
 <table id="list" class="sortable">
   <thead>
   </thead>
@@ -221,7 +236,7 @@ tr:hover {
 
 <div id="summary">
   <span style="float:right">
-    <label><input type="checkbox" id="showFlags" value="1" />Show bug and attachment flags (slower)</label>
+    <label id="showFlagsLabel"><input type="checkbox" id="showFlags" value="1" />Show bug and attachment flags (slower)</label>
     <a href="https://github.com/mnoorenberghe/bz-dependency-buglist/" target="_blank">Fork me on Github</a>
   </span>
 </div>
