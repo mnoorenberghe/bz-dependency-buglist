@@ -56,6 +56,10 @@ var gSortColumn = null;
 var gSortDirection = null;
 var gHasFlags = false;
 var gLastPrintTime = 0;
+/**
+ * Array of depths containing bugs still to fetch which were found at that depth.
+ * i.e. dependencies of the root would appear in the array at index 0.
+ */
 var gDependenciesToFetch = [];
 
 function getDependencySubset(depth) {
@@ -93,10 +97,12 @@ function handleBugsResponse(depth, response) {
       gDependenciesToFetch[depth] = gDependenciesToFetch[depth].concat(bugs[i].depends_on.filter(function removeExisting(bugId) {
         return !(bugId in gBugs);
       }));
-      while (gDependenciesToFetch[depth].length >= BUG_CHUNK_SIZE) {
-        getDependencySubset(depth);
-      }
     }
+  }
+
+  // Kick off fetches in chunks for the remaining bugs.
+  while (gDependenciesToFetch[depth].length >= BUG_CHUNK_SIZE) {
+    getDependencySubset(depth);
   }
 
   window.setTimeout(printList, 0);
