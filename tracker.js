@@ -670,6 +670,7 @@ function init() {
     if (gMetabugs[list] == gDefaultMetabug)
       return;
     listbox.innerHTML += '<a href="?list=' + list + '">' + list + '</a> ';
+    listbox.hidden = false;
   });
 
   gFilterEls.resolved = document.getElementById("showResolved");
