@@ -28,7 +28,7 @@ var gColumns = {
   "component": "Comp.",
   "summary": "Summary",
   "whiteboard": "Whiteboard",
-  "cf_fx_points": "Points",
+  //"cf_fx_points": "Points",
   "cf_fx_iteration": "Iter.",
   "priority": "Pri.",
   //"milestone": "M?",
@@ -70,14 +70,49 @@ var gDependenciesToFetch = [];
  * Instead of making three requests for two bugs each at depth N, make one request for all six bugs.
  * Instead of making one request for 200 bugs which may exceed the query string limit, split into
  * chunks of size BUG_CHUNK_SIZE.
+ *
+ * @param {Number} depth - depth to fetch a batch of bugs from
  */
 function getDependencySubset(depth) {
   var totalDepsToFetch = gDependenciesToFetch.reduce(function(a, b) {
     return a + b.length;
   }, 0);
   var subset = gDependenciesToFetch[depth].splice(0, BUG_CHUNK_SIZE);
-  setStatus("Fetching " + subset.length + "/" + totalDepsToFetch + " remaining dependencies… <progress />");
+  setStatus(totalDepsToFetch + " dependencies queued to fetch… <progress />");
   fetchBugs(subset, depth + 1);
+}
+
+/**
+ * Note: One limitation is that the max depth will affect whether additional
+ * paths from the root are found.
+ *
+ * @param {Object} bug
+ * @param {Number} [depth = undefined] - the depth this bug was first found at
+ *                 or undefined if this bug wasn't just found.
+ */
+function hasRootPathWithoutMinus(bug, depth) {
+  // If the bug itself is minused, no need to check it's ancestors.
+  if (isBugMinused(bug)) {
+    return false;
+  }
+
+  // Handle bugs with existing paths when we don't know they depth later.
+  if (bug._rootPathWithoutMinus === true) {
+    return true;
+  }
+
+  // Since the root bug isn't in gBugs we need this special case so children of
+  // the root return true if they themselves aren't minused.
+  if (depth === 1) {
+    return true;
+  }
+
+  // Check if we found any of its parents in the tree already and it had a path
+  // to the root without a minus. Note that we might not have fetched some of
+  // the parents yet so this answer can change when we see the same bug later.
+  return bug.blocks.some(function(blocksId) {
+    return blocksId in gBugs && gBugs[blocksId]._rootPathWithoutMinus === true;
+  });
 }
 
 /**
@@ -98,14 +133,26 @@ function handleBugsResponse(depth, response) {
     // Don't include the root bug in the array.
     if (depth > 0) {
       gBugs[bugs[i].id] = bugs[i];
+      gBugs[bugs[i].id]._rootPathWithoutMinus = hasRootPathWithoutMinus(bugs[i], depth);
     }
 
     // Add any depedencies to the array of dependencies to fetch for the specified
     // depth unless we've already fetched that bug through a different path.
     if ("depends_on" in bugs[i] && Array.isArray(bugs[i].depends_on)) {
-      gDependenciesToFetch[depth] = gDependenciesToFetch[depth].concat(bugs[i].depends_on.filter(function removeExisting(bugId) {
-        return !(bugId in gBugs);
-      }));
+      for (var j = 0; j < bugs[i].depends_on.length; j++) {
+        var depBugId = bugs[i].depends_on[j];
+        if (depBugId in gBugs) {
+          // We don't know the depth since we don't know at what depth it was found originally.
+          var before = gBugs[depBugId]._rootPathWithoutMinus;
+          gBugs[depBugId]._rootPathWithoutMinus = hasRootPathWithoutMinus(gBugs[depBugId], undefined);
+          var after = gBugs[depBugId]._rootPathWithoutMinus;
+          if (!before && after) {
+            console.info("!before && after", depBugId); // TODO: test that this happens
+          }
+        } else {
+          gDependenciesToFetch[depth].push(depBugId);
+        }
+      }
     }
   }
 
@@ -279,7 +326,7 @@ function fetchBugs(blocks, depth) {
   //console.log(bzColumns);
   var apiURL = "https://bugzilla.mozilla.org/bzapi/bug" +
         "?" + blocksParams.replace(/^&/, "") +
-        "&include_fields=depends_on," + bzColumns.join(",");
+        "&include_fields=depends_on,blocks," + bzColumns.join(",");
 
   var hasFlags = gFilterEls.flags.checked;
   var gHTTPRequest = null;  // TODO
@@ -321,6 +368,14 @@ function fetchBugs(blocks, depth) {
   gHTTPRequest.setRequestHeader('Content-Type', 'application/json');
   gHTTPRequest.send();
   gHTTPRequestsInProgress++;
+}
+
+function isBugMinused(bug) {
+  if (!bug.whiteboard) {
+    return false;
+  }
+  return bug.whiteboard.toLowerCase().indexOf(":m-]") !== -1 ||
+         bug.whiteboard.toLowerCase().indexOf(":p-]") !== -1;
 }
 
 function flagText(flag, html) {
@@ -380,10 +435,6 @@ function printList(unthrottled) {
   });
 
   var whiteboardFilter = getFilterValue(gFilterEls.whiteboard);
-  // support searching for milestones with the shortened displayed text of "[MX]"
-  whiteboardFilter = whiteboardFilter.replace(/^\[m/i, "[Australis:M");
-  whiteboardFilter = whiteboardFilter.replace(/^\[p/i, "[Australis:P");
-
   var assigneeFilter = getFilterValue(gFilterEls.assignee);
   var resolvedFilter = getFilterValue(gFilterEls.resolved);
   var productFilter = getFilterValue(gFilterEls.product);
@@ -425,7 +476,7 @@ function printList(unthrottled) {
       return;
     }
 
-    if (mMinusFilter === "0" && (bug.whiteboard && (bug.whiteboard.toLowerCase().indexOf(":m-]") !== -1 || bug.whiteboard.toLowerCase().indexOf(":p-]") !== -1))) {
+    if (mMinusFilter === "0" && !bug._rootPathWithoutMinus) {
       return;
     }
     var whiteboardFilterLower = whiteboardFilter.toLowerCase();
@@ -499,10 +550,9 @@ function printList(unthrottled) {
         col.setAttribute("sorttable_customkey", bug[column].replace(/^(P\d)$/, "$1,"));
       } else if (column == "whiteboard") {
         if (bug[column]) {
-          var wb = bug[column].replace("[Australis:M", "[M");
-          wb = wb.replace("[Australis:P", "[P");
-          wb = wb.replace(/\[P[^\]]+\]/, function(match) {
-            bug["priority"] = match.slice(1, -1);
+          var wb = bug[column];
+          wb = wb.replace(/\[[^:\]]+:(P[^\]]+)\]/, function(match, priority) {
+            bug["priority"] = priority;
             return "";
           });
           wb = wb.replace(/\[M[^\]]+\]/, function(match) {
@@ -555,6 +605,7 @@ function printList(unthrottled) {
 function setStatus(message) {
   var statusbox = document.getElementById("status");
   if (message) {
+    console.log("setStatus:", message);
     statusbox.innerHTML = message;
     statusbox.classList.remove("hidden");
   } else {
