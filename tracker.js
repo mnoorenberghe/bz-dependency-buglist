@@ -604,7 +604,13 @@ function loadFilterValues(state) {
   gSortDirection = ("sortDirection" in state ? state.sortDirection : gSortDirection);
 }
 
-function start() {
+/**
+ * This function gets called once upon DOMContentLoaded to setup static state and markup.
+ * The function then kicks up the initial request for bugs.
+ *
+ * Nothing directly in this function should depend on URL parameters.
+ */
+function init() {
   var fileBugList = document.querySelector("#file > ul");
   var listbox = document.getElementById("metabugs");
   listbox.textContent = 'Metabugs: ';
@@ -655,5 +661,5 @@ function loadInitialBugs() {
   getList(gUrlParams.list || window.location.hash.replace("#", ""), 0);
 }
 
-document.addEventListener("DOMContentLoaded", start);
+document.addEventListener("DOMContentLoaded", init);
 window.onpopstate = parseQueryParams;
