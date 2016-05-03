@@ -400,7 +400,6 @@ function printList(unthrottled) {
   gLastPrintTime = nowTime;
 
   var table = document.getElementById("list");
-  table.style.visibility = "";
   // Delete existing rows
   var rows = document.querySelectorAll("#list > tbody > tr");
   for (var i = 0; i < rows.length; i++) {
@@ -596,7 +595,6 @@ function printList(unthrottled) {
       }
     }
   }
-  table.style.visibility = "visible";
 }
 
 function setStatus(message) {
@@ -694,6 +692,9 @@ function init() {
   gFilterEls.maxdepth.addEventListener("input", filterChanged);
   gFilterEls.whiteboard.addEventListener("input", filterChanged);
 
+  // Print the headings to reduce jumping when the first printList happens later.
+  printList(true);
+
   getBugsUnderRoot();
 }
 
@@ -721,6 +722,7 @@ function getBugsUnderRoot() {
     treelink.style.display = "none";
 
     document.getElementById("form").hidden = false;
+    document.getElementById("list").hidden = true;
     document.getElementById("tools").hidden = true;
     document.getElementById("showFlagsLabel").hidden = true;
     return;
