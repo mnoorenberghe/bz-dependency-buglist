@@ -70,13 +70,16 @@ function getDependencySubset(depth) {
 function handleMetabugs(depth, response) {
   var json = JSON.parse(response);
   var bugs = json.bugs;
-
+  //console.info("response:", depth, bugs);
   for (var i = 0; i < bugs.length; i++) {
     // First occurrence at the max depth
-    if (depth == parseInt(gFilterEls.maxdepth.value) - 1 && !(bugs[i].id in gBugs)) {
+    if (depth == parseInt(gFilterEls.maxdepth.value) && !(bugs[i].id in gBugs)) {
       gBugsAtMaxDepth[bugs[i].id] = bugs[i];
     }
-    gBugs[bugs[i].id] = bugs[i];
+    // Don't include the root bug in the list
+    if (depth > 0) {
+      gBugs[bugs[i].id] = bugs[i];
+    }
     if ("depends_on" in bugs[i] && Array.isArray(bugs[i].depends_on)) {
       gDependenciesToFetch[depth] = gDependenciesToFetch[depth].concat(bugs[i].depends_on.filter(function removeExisting(bugId) {
         return !(bugId in gBugs);
@@ -218,7 +221,7 @@ function filterChanged(evt) {
  */
 function fetchBugs(blocks, depth) {
   console.log("fetchBugs:", depth, blocks);
-  if (depth >= parseInt(gFilterEls.maxdepth.value)) {
+  if (depth > parseInt(gFilterEls.maxdepth.value)) {
     console.log("max. depth reached: ", depth);
     if (!gHTTPRequestsInProgress) {
       setStatus("");
@@ -226,14 +229,16 @@ function fetchBugs(blocks, depth) {
     return;
   }
 
-  var metaBug = null;
   var blocksParams = "";
   if (Array.isArray(blocks)) {
     blocksParams += "&id=" + blocks.join(",");
   } else {
-    var bugNum = parseInt(blocks, 10);
-    blocksParams += "&blocks=" + bugNum;
-    metaBug = bugNum;
+    var bugNum = Number(blocks);
+    if (bugNum) {
+      blocksParams += "&id=" + encodeURIComponent(blocks);
+    } else {
+      blocksParams += "&alias=" + encodeURIComponent(blocks);
+    }
   }
 
   if (gFilterEls.flags.checked) {
@@ -630,7 +635,7 @@ function getBugsUnderRoot() {
   setStatus("Loading bugs… <progress />");
 
   // Populate/clear gDependenciesToFetch for the appropriate number of levels.
-  gDependenciesToFetch = new Array(parseInt(gFilterEls.maxdepth.value));
+  gDependenciesToFetch = new Array(parseInt(gFilterEls.maxdepth.value) + 1);
   for (var d = 0; d < gDependenciesToFetch.length; d++) {
     gDependenciesToFetch[d] = [];
   }
