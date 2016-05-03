@@ -62,6 +62,15 @@ var gLastPrintTime = 0;
  */
 var gDependenciesToFetch = [];
 
+
+/**
+ * Deals with batching of bug requests by depth in order to reduce the number of requests to
+ * Bugzilla while also not creating query strings which are too long.
+ *
+ * Instead of making three requests for two bugs each at depth N, make one request for all six bugs.
+ * Instead of making one request for 200 bugs which may exceed the query string limit, split into
+ * chunks of size BUG_CHUNK_SIZE.
+ */
 function getDependencySubset(depth) {
   var totalDepsToFetch = gDependenciesToFetch.reduce(function(a, b) {
     return a + b.length;
@@ -100,7 +109,7 @@ function handleBugsResponse(depth, response) {
     }
   }
 
-  // Kick off fetches in chunks for the remaining bugs.
+  // Kick off fetches if we're already over the chunk size for this depth.
   while (gDependenciesToFetch[depth].length >= BUG_CHUNK_SIZE) {
     getDependencySubset(depth);
   }
