@@ -726,8 +726,8 @@ function getBugsUnderRoot() {
 
     setStatus("No list or default meta bug specified.<br/>" +
               "<form onsubmit='gUrlParams.list=this.firstElementChild.value;filterChanged(event);'>" +
-              "<input type=number size=8 placeholder=Bug style='-moz-appearance:textfield' /> " +
-              "<button>Go</button></form>");
+              "<input size=18 placeholder='bug number or alias'/> " +
+              "<button>Fetch dependencies</button></form>");
     return;
   }
 
