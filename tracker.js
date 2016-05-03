@@ -271,7 +271,9 @@ function fetchBugs(blocks, depth) {
     delete gColumns["attachments"];
   }
 
-  var bzColumns = Object.keys(gColumns).filter(function(val){ return VIRTUAL_COLUMNS.indexOf(val) === -1; }); // milestone is a virtual column.
+  var bzColumns = Object.keys(gColumns).filter(function(val) { // gColumns without virtual columns (e.g. milestone)
+    return VIRTUAL_COLUMNS.indexOf(val) === -1;
+  });
   //console.log(bzColumns);
   var apiURL = "https://bugzilla.mozilla.org/bzapi/bug" +
         "?" + blocksParams.replace(/^&/, "") +
@@ -282,7 +284,6 @@ function fetchBugs(blocks, depth) {
   if (gHTTPRequest)
     gHTTPRequest.abort();
   gHTTPRequest = new XMLHttpRequest();
-  //var callback = function(resp) { handleMetabugs(depth, resp); };
   var callback = handleMetabugs.bind(this, depth);
   gHTTPRequest.onreadystatechange = function progressListener() {
     if (this.readyState == 4) {
