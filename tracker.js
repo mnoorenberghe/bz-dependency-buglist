@@ -13,6 +13,7 @@ var gMetabugs = {
   // TODO: update this object for your needs
   //"australis-meta": 870032,
   //"australis-tabs": 732583,
+  //"fx-qx": 1244854,
 };
 var gDefaultMetabug = null; // Example: gMetabugs["australis-meta"];
 
@@ -210,9 +211,9 @@ function filterChanged(evt) {
  * If `depth` is greater than the max depth, no bugs will be fetched.
  *
  * If `blocks` is an array, fetch the specified bugs.
- * Otherwise, fetch bugs that block the bug identified by number or alias in gMetaBugs.
+ * Otherwise, fetch bugs that block the bug number/alias (an actual alias on Bugzilla).
  *
- * @param {String|Number|Number[]} blocks - gMetaBugs alias, bug number of array of bug numbers
+ * @param {Number|Number[]|String} blocks - bug number, bugzilla alias, or array of bug numbers
  * @param {Number} depth - number of levels below the root bug that we are fetching
  */
 function fetchBugs(blocks, depth) {
@@ -229,34 +230,10 @@ function fetchBugs(blocks, depth) {
   var blocksParams = "";
   if (Array.isArray(blocks)) {
     blocksParams += "&id=" + blocks.join(",");
-  } else if (!(blocks in gMetabugs)) {
+  } else {
     var bugNum = parseInt(blocks, 10);
     blocksParams += "&blocks=" + bugNum;
     metaBug = bugNum;
-  } else {
-    blocksParams = "blocks=" + gMetabugs[blocks];
-    metaBug = gMetabugs[blocks];
-  }
-
-  if (!Array.isArray(blocks) && !depth) { // Don't update the title for subqueries
-    var heading = document.getElementById("title");
-    if (blocks in gMetabugs) {
-      heading.textContent = blocks;
-    } else {
-      heading.textContent = "Bug " + blocks;
-    }
-    document.title = blocks + " - Dependency Bug List";
-
-    var treelink = document.getElementById("treelink");
-    if (metaBug) {
-      heading.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + metaBug;
-      treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + metaBug + "&maxdepth=" + gFilterEls.maxdepth.value + "&hide_resolved=1";
-      treelink.style.display = "inline";
-    } else {
-      heading.removeAttribute("href");
-      treelink.firstElementChild.removeAttribute("href");
-      treelink.style.display = "none";
-    }
   }
 
   if (gFilterEls.flags.checked) {
@@ -658,16 +635,40 @@ function getBugsUnderRoot() {
     gDependenciesToFetch[d] = [];
   }
 
-  let rootBugOrAlias = gUrlParams.list || window.location.hash.replace("#", "") || gDefaultMetabug;
-  if (rootBugOrAlias) {
-    fetchBugs(rootBugOrAlias, 0);
-  } else {
+  // This can be an alias known only to the dashboard in gMetabugs, not only a Bugzilla alias.
+  var rootBugOrAlias = gUrlParams.list || window.location.hash.replace("#", "") || gDefaultMetabug;
+
+  if (!rootBugOrAlias) {
+    heading.removeAttribute("href");
+    treelink.firstElementChild.removeAttribute("href");
+    treelink.style.display = "none";
+
     setStatus("No list or default meta bug specified.<br/>" +
               "<form onsubmit='gUrlParams.list=this.firstElementChild.value;filterChanged(event);'>" +
               "<input type=number size=8 placeholder=Bug style='-moz-appearance:textfield' /> " +
               "<button>Go</button></form>");
     return;
   }
+
+  // Update the heading and title for the specified root bug.
+  var heading = document.getElementById("title");
+  if (Number(rootBugOrAlias)) {
+    heading.textContent = "Bug " + rootBugOrAlias;
+  } else {
+    heading.textContent = rootBugOrAlias;
+  }
+  document.title = rootBugOrAlias + " - Dependency Bug List";
+
+
+  // Lookup in gMetabugs in case we have an alias known only to the dashboard, not to bugzilla.
+  var bugzillaBugOrAlias = rootBugOrAlias in gMetabugs ? gMetabugs[rootBugOrAlias] : rootBugOrAlias;
+  var treelink = document.getElementById("treelink");
+  heading.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + bugzillaBugOrAlias;
+  treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + bugzillaBugOrAlias +
+    "&maxdepth=" + gFilterEls.maxdepth.value + "&hide_resolved=1";
+  treelink.style.display = "inline";
+
+  fetchBugs(bugzillaBugOrAlias, 0);
 }
 
 document.addEventListener("DOMContentLoaded", init);
