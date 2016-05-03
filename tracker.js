@@ -240,16 +240,12 @@ function fetchBugs(blocks, depth) {
 
   if (!Array.isArray(blocks) && !depth) { // Don't update the title for subqueries
     var heading = document.getElementById("title");
-    if (blocks) {
-      if (blocks in gMetabugs) {
-        heading.textContent = blocks;
-      } else {
-        heading.textContent = "Bug " + blocks;
-      }
+    if (blocks in gMetabugs) {
+      heading.textContent = blocks;
     } else {
-      heading.textContent = "Dependency Bug List";
+      heading.textContent = "Bug " + blocks;
     }
-    document.title = (blocks ? blocks + " - " : "") + "Dependency Bug List";
+    document.title = blocks + " - Dependency Bug List";
 
     var treelink = document.getElementById("treelink");
     if (metaBug) {
