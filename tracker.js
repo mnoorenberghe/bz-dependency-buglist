@@ -48,7 +48,6 @@ const VIRTUAL_COLUMNS = ["milestone"];
 
 var gBugs = {};
 var gBugsAtMaxDepth = {};
-var gVisibleBugs = {};
 var gHTTPRequestsInProgress = 0;
 var gUrlParams = {};
 var gFilterEls = {};
@@ -56,7 +55,6 @@ var gSortColumn = null;
 var gSortDirection = null;
 var gHasFlags = false;
 var gLastPrintTime = 0;
-var gVisibleReporters = {};
 var gDependenciesToFetch = [];
 
 function getDependencySubset(depth) {
@@ -439,15 +437,6 @@ function printList(unthrottled) {
         ) {
       return;
     }
-    if (bug["creator"]) {
-      if (!gVisibleReporters[bug["creator"].name]) {
-          gVisibleReporters[bug["creator"].name] = {};
-      }
-      gVisibleReporters[bug["creator"].name][bugId] = 1;
-    }
-
-    // Note that this doesn't get cleared so really means bugs visible based on initial filters. It's only used for gathering data in the console.
-    gVisibleBugs[bugId] = bug;
 
     Object.keys(gColumns).forEach(function(column) {
       var col = document.createElement("td");
