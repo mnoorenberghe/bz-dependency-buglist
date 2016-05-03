@@ -37,6 +37,7 @@ var gColumns = {
 
 
 const BUG_CHUNK_SIZE = 100;
+const BUGZILLA_ORIGIN = "https://bugzilla.mozilla.org";
 /**
  * Max dependency depth
  */
@@ -324,7 +325,7 @@ function fetchBugs(blocks, depth) {
     return VIRTUAL_COLUMNS.indexOf(val) === -1;
   });
   //console.log(bzColumns);
-  var apiURL = "https://bugzilla.mozilla.org/bzapi/bug" +
+  var apiURL = BUGZILLA_ORIGIN + "/bzapi/bug" +
         "?" + blocksParams.replace(/^&/, "") +
         "&include_fields=depends_on,blocks," + bzColumns.join(",");
 
@@ -536,7 +537,7 @@ function printList(unthrottled) {
         col.dataset[column] = col.textContent;
       } else if (column == "id" || column == "summary") {
         var a = document.createElement("a");
-        a.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + bug.id;
+        a.href = BUGZILLA_ORIGIN + "/show_bug.cgi?id=" + bug.id;
         a.textContent = bug[column];
         col.appendChild(a);
       } else if (column == "status" || column == "resolution") {
@@ -665,7 +666,7 @@ function init() {
   listbox.innerHTML += '<a href="./">ALL</a> ';
   Object.keys(gMetabugs).forEach(function(list){
     // TODO: don't hard-code the product. Unfortunately the blocked parameter gets lost without a product though :(
-    fileBugList.innerHTML += '<li><a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Firefox&blocked=' + gMetabugs[list] + '">' + list + '</a></li>';
+    fileBugList.innerHTML += '<li><a href="' + BUGZILLA_ORIGIN + '/enter_bug.cgi?product=Firefox&blocked=' + gMetabugs[list] + '">' + list + '</a></li>';
     if (gMetabugs[list] == gDefaultMetabug)
       return;
     listbox.innerHTML += '<a href="?list=' + list + '">' + list + '</a> ';
@@ -741,8 +742,8 @@ function getBugsUnderRoot() {
 
   // Lookup in gMetabugs in case we have an alias known only to the dashboard, not to bugzilla.
   var bugzillaBugOrAlias = rootBugOrAlias in gMetabugs ? gMetabugs[rootBugOrAlias] : rootBugOrAlias;
-  heading.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + bugzillaBugOrAlias;
-  treelink.firstElementChild.href = "https://bugzilla.mozilla.org/showdependencytree.cgi?id=" + bugzillaBugOrAlias +
+  heading.href = BUGZILLA_ORIGIN + "/show_bug.cgi?id=" + bugzillaBugOrAlias;
+  treelink.firstElementChild.href = BUGZILLA_ORIGIN + "/showdependencytree.cgi?id=" + bugzillaBugOrAlias +
     "&maxdepth=" + gFilterEls.maxdepth.value + "&hide_resolved=1";
   treelink.style.display = "inline";
 
