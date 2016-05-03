@@ -198,13 +198,21 @@ function filterChanged(evt) {
       evt.preventDefault();
       return;
     } else {
-      loadInitialBugs();
+      getBugsUnderRoot();
     }
   }
 
   printList(true);
 }
 
+/**
+ * Fetch bugs that are descendants of the root bug at the specified depth.
+ *
+ * If `depth` is greater than the max depth, no bugs will be fetched.
+ *
+ * @param {String|Number|Number[]} blocks - gMetaBugs alias, bug number of array of bug numbers
+ * @param {Number} depth - number of levels below the root bug that we are fetching
+ */
 function getList(blocks, depth) {
   console.log("getList:", depth, blocks);
   if (depth >= parseInt(gFilterEls.maxdepth.value)) {
@@ -217,18 +225,7 @@ function getList(blocks, depth) {
 
   var metaBug = null;
   var blocksParams = "";
-  if (!blocks) {
-    if (gDefaultMetabug) {
-      blocksParams += "&blocks=" + gDefaultMetabug;
-      metaBug = gDefaultMetabug;
-    } else {
-      setStatus("No list or default meta bug specified.<br/>" +
-                "<form onsubmit='gUrlParams.list=this.firstElementChild.value;filterChanged(event);'>" +
-                "<input type=number size=8 placeholder=Bug style='-moz-appearance:textfield' /> " +
-                "<button>Go</button></form>");
-      return;
-    }
-  } else if (Array.isArray(blocks)) {
+  if (Array.isArray(blocks)) {
     blocksParams += "&id=" + blocks.join(",");
   } else if (!(blocks in gMetabugs)) {
     var bugNum = parseInt(blocks, 10);
@@ -644,16 +641,34 @@ function init() {
   gFilterEls.maxdepth.addEventListener("input", filterChanged);
   gFilterEls.whiteboard.addEventListener("input", filterChanged);
 
-  loadInitialBugs();
+  getBugsUnderRoot();
 }
 
-function loadInitialBugs() {
+/**
+ * Prepare for loading the root bug (if specified) or prompt otherwise.
+ *
+ * This function can be called more than once on a page load
+ * e.g. if flag columns are requested after the page was fully loaded without flags.
+ */
+function getBugsUnderRoot() {
   setStatus("Loading bugs… <progress />");
+
+  // Populate/clear gDependenciesToFetch for the appropriate number of levels.
   gDependenciesToFetch = new Array(parseInt(gFilterEls.maxdepth.value));
   for (var d = 0; d < gDependenciesToFetch.length; d++) {
     gDependenciesToFetch[d] = [];
   }
-  getList(gUrlParams.list || window.location.hash.replace("#", ""), 0);
+
+  let rootBugOrAlias = gUrlParams.list || window.location.hash.replace("#", "") || gDefaultMetabug;
+  if (rootBugOrAlias) {
+    getList(rootBugOrAlias, 0);
+  } else {
+    setStatus("No list or default meta bug specified.<br/>" +
+              "<form onsubmit='gUrlParams.list=this.firstElementChild.value;filterChanged(event);'>" +
+              "<input type=number size=8 placeholder=Bug style='-moz-appearance:textfield' /> " +
+              "<button>Go</button></form>");
+    return;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);
