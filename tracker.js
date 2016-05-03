@@ -660,6 +660,7 @@ function init() {
   Object.keys(gMetabugs).forEach(function(list){
     // TODO: don't hard-code the product. Unfortunately the blocked parameter gets lost without a product though :(
     fileBugList.innerHTML += '<li><a href="' + BUGZILLA_ORIGIN + '/enter_bug.cgi?product=Firefox&blocked=' + gMetabugs[list] + '">' + list + '</a></li>';
+    document.getElementById("file").style.display = "";
     if (gMetabugs[list] == gDefaultMetabug)
       return;
     listbox.innerHTML += '<a href="?list=' + list + '">' + list + '</a> ';
