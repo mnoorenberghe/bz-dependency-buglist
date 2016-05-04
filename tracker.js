@@ -218,12 +218,12 @@ function buildURL() {
 
     url += (url ? "&" : "?") + paramName + "=" + encodeURIComponent(filterVal);
   });
-  ["sortColumn", "sortDirection"].forEach(function(paramName) {
-    var filterVal = window["g" + paramName];
+  ["Column", "Direction"].forEach(function(paramName) {
+    var filterVal = window["gSort" + paramName];
     if (!filterVal)
       return;
 
-    url += (url ? "&" : "?") + paramName + "=" + encodeURIComponent(filterVal);
+    url += (url ? "&" : "?") + "sort" + paramName + "=" + encodeURIComponent(filterVal);
   });
   // if we only return an empty string, then pushState doesn't work
   return url || "?";
