@@ -363,6 +363,7 @@ function fetchBugs(blocks, depth) {
   xhr.open("GET", apiURL, true);
   xhr.setRequestHeader('Accept',       'application/json');
   xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('User-Agent',   'bz-dependency-buglist/1.0 (' + window.location.hostname + ')');
   xhr.send();
   gHTTPRequestsInProgress++;
 }
